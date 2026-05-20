@@ -17,9 +17,25 @@ module.exports = {
             .addFields(
                 { name: "Auteur", value: `${message.author.tag} (<@${message.author.id}>)`, inline: true },
                 { name: "Salon", value: `<#${message.channel.id}>`, inline: true },
-                { name: "Contenu", value: message.content?.slice(0, 1024) || "*Aucun texte (probablement un média)*" }
             )
             .setTimestamp();
+
+        const attachments = [];
+
+        if(message.content.length > 1024){
+            const buffer = Buffer.from(content, "utf-8");
+
+            const fileAttachment = new AttachmentBuilder(buffer, {
+                name: "message.txt"
+            });
+
+            attachments.push(fileAttachment)
+
+            embed.addFields({ name: "Contenu", value: "*Contenu en pièce jointe.*" });
+        }
+        else {
+            embed.addFields({ name: "Contenu", value: message.content || "*Aucun contenu (probablement un média).*" });
+        }
 
         // S'il y a des pièces jointes
         const files = [];
@@ -31,6 +47,6 @@ module.exports = {
             });
         }
 
-        logChannel.send({ embeds: [embed] });
+        logChannel.send({ embeds: [embed], files: attachments });
     }
 };
