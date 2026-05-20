@@ -34,7 +34,7 @@ module.exports = {
 
             files.push(fileAttachment);
 
-            embed.addFields({ name: "Avant", value: sanitize(oldMessage.content || "*Voir la pièce-jointe old_message.txt .*") });
+            embed.addFields({ name: "Avant", value: "*Voir la pièce-jointe old_message.txt .*" });
         }
         else {
             embed.addFields({ name: "Avant", value: sanitize(oldMessage.content || "*Voir la pièce-jointe new_message.txt .*") });
@@ -49,7 +49,7 @@ module.exports = {
 
             files.push(fileAttachment);
 
-            embed.addFields({ name: "Avant", value: sanitize(newMessage.content || "*Voir la pièce-jointe new_message.txt .*") });
+            embed.addFields({ name: "Après", value: "*Voir la pièce-jointe new_message.txt .*" });
         }
         else {
             embed.addFields({ name: "Après", value: sanitize(newMessage.content || "*Vide*") });
