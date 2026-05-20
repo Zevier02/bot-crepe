@@ -19,12 +19,42 @@ module.exports = {
             .addFields(
                 { name: "Auteur", value: `${oldMessage.author.tag} (<@${oldMessage.author.id}>)`, inline: true },
                 { name: "Salon", value: `<#${oldMessage.channel.id}>`, inline: true },
-                { name: "Avant", value: sanitize(oldMessage.content?.slice(0, 1024) || "*Vide*") },
-                { name: "Après", value: sanitize(newMessage.content?.slice(0, 1024) || "*Vide*") },
                 { name: "Lien", value: `[Aller au message](https://discord.com/channels/${newMessage.guild.id}/${newMessage.channel.id}/${newMessage.id})` }
             )
             .setTimestamp();
 
-        logChannel.send({ embeds: [embed] });
+        const files = [];
+
+        if(oldMessage.content.length > 1024){
+            const buffer = Buffer.from(oldMessage.content, "utf-8");
+
+            const fileAttachment = new AttachmentBuilder(buffer, {
+                name: "old_message.txt"
+            });
+
+            files.push(fileAttachment);
+
+            embed.addFields({ name: "Avant", value: sanitize(oldMessage.content || "*Voir la pièce-jointe old_message.txt .*") });
+        }
+        else {
+            embed.addFields({ name: "Avant", value: sanitize(oldMessage.content || "*Voir la pièce-jointe new_message.txt .*") });
+        }
+
+        if(newMessage.content.length > 1024){
+            const buffer = Buffer.from(newMessage.content, "utf-8");
+
+            const fileAttachment = new AttachmentBuilder(buffer, {
+                name: "new_message.txt"
+            });
+
+            files.push(fileAttachment);
+
+            embed.addFields({ name: "Avant", value: sanitize(newMessage.content || "*Voir la pièce-jointe new_message.txt .*") });
+        }
+        else {
+            embed.addFields({ name: "Après", value: sanitize(newMessage.content || "*Vide*") });
+        }
+
+        logChannel.send({ embeds: [embed], files });
     }
 };

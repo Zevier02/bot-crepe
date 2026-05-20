@@ -23,7 +23,7 @@ module.exports = {
         const attachments = [];
 
         if(message.content.length > 1024){
-            const buffer = Buffer.from(content, "utf-8");
+            const buffer = Buffer.from(message.content, "utf-8");
 
             const fileAttachment = new AttachmentBuilder(buffer, {
                 name: "message.txt"
@@ -31,7 +31,7 @@ module.exports = {
 
             attachments.push(fileAttachment)
 
-            embed.addFields({ name: "Contenu", value: "*Contenu en pièce jointe.*" });
+            embed.addFields({ name: "Contenu", value: "*Contenu en pièce-jointe message.txt .*" });
         }
         else {
             embed.addFields({ name: "Contenu", value: message.content || "*Aucun contenu (probablement un média).*" });
