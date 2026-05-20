@@ -28,7 +28,7 @@ module.exports = {
         if(oldMessage.content.length > 1024){
             const buffer = Buffer.from(oldMessage.content, "utf-8");
 
-            const fileAttachment = new AttachmentBuilder(buffer, {
+            const fileAttachment = new Discord.AttachmentBuilder(buffer, {
                 name: "old_message.txt"
             });
 
@@ -43,7 +43,7 @@ module.exports = {
         if(newMessage.content.length > 1024){
             const buffer = Buffer.from(newMessage.content, "utf-8");
 
-            const fileAttachment = new AttachmentBuilder(buffer, {
+            const fileAttachment = new Discord.AttachmentBuilder(buffer, {
                 name: "new_message.txt"
             });
 

@@ -25,7 +25,7 @@ module.exports = {
         if(message.content.length > 1024){
             const buffer = Buffer.from(message.content, "utf-8");
 
-            const fileAttachment = new AttachmentBuilder(buffer, {
+            const fileAttachment = new Discord.AttachmentBuilder(buffer, {
                 name: "message.txt"
             });
 
