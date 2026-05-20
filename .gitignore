@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 node_modules/
 config.json
+=======
+config.json
+node_modules/
+>>>>>>> 075b6a6 (Amélioration du log de message.)
