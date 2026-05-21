@@ -41,7 +41,7 @@ async function initializeDatabase() {
 
     await pool.execute(`
         CREATE TABLE IF NOT EXISTS global (
-        id VARCHAR(32) PRIMARY KEY
+        id VARCHAR(32) PRIMARY KEY,
         totalMessages BIGINT UNSIGNED NOT NULL DEFAULT 0,
         totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0)
     `);
