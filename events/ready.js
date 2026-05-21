@@ -1,13 +1,16 @@
 const Config = require("../config.json")
 const Discord = require(Config.ddiscordjs);
 const fs = require("fs");
+const statsHandler = require("../statsHandler.js")
 const Client = new Discord.Client({
     intents: [
         Discord.GatewayIntentBits.Guilds,
         Discord.GatewayIntentBits.GuildMembers
     ]
 });
-Client.login(Config.token)
+
+Client.login(Config.token);
+
 function waitUntilReady(client) {
     return new Promise((resolve) => {
         if (client.isReady()) return resolve();
@@ -145,6 +148,9 @@ module.exports = {
             })();
             i += 1
         }
+
+        statsHandler.initializeDatabase();
+
         await waitUntilReady(Client)
         Client.user.setPresence({ activities: [{ name: 'les crêpes cuires', type: Discord.ActivityType.Listening }], status: 'online' });
         const channel = await Client.channels.fetch('1383815098606424235');
