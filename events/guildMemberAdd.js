@@ -33,7 +33,7 @@ module.exports = {
         var background = await Canvas.loadImage(Config.background);
         ctx.drawImage(background, 0, 0, 1000, 300);
 
-        const pseudotext = member.user.displayName.length > 12? member.user.displayName.substring(0, 11) + "..." : member.user.displayName;
+        const pseudotext = member.user.displayName
         
         ctx.font = "50px Rubik";
         ctx.fillStyle = "#ffffff";
@@ -43,7 +43,19 @@ module.exports = {
         ctx.font = "75px Rubik";
         ctx.fillStyle = color
         ctx.textAlign = "left";
-        ctx.fillText(pseudotext, 400, 225);
+
+        const text = member.user.displayName;
+        const maxWidth = 220; // largeur max autorisée
+        let fontSize = 40;
+
+        // Réduit la taille jusqu'à ce que le texte rentre
+        do {
+            ctx.font = `${fontSize}px Arial`;
+            fontSize--;
+        } while (ctx.measureText(text).width > maxWidth && fontSize > 10);
+
+
+        ctx.fillText(text, 400, 225);
         
         ctx.beginPath();
         ctx.arc(230, 150, 100, 0, Math.PI * 2)
