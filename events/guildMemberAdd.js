@@ -45,8 +45,8 @@ module.exports = {
         ctx.textAlign = "left";
 
         const text = member.user.displayName;
-        const maxWidth = 220; // largeur max autorisée
-        let fontSize = 40;
+        const maxWidth = 550; // largeur max autorisée
+        let fontSize = 75;
 
         // Réduit la taille jusqu'à ce que le texte rentre
         do {
