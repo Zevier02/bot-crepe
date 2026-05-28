@@ -47,6 +47,20 @@ const commands = [
             }
         ]
     },
+
+    {
+        name: "cardtest",
+        description: "Envoie un test de carte de nouveau memebre comme quand quelqu'un rejoint.",
+        default_member_permissions: 0x0000000000000008,
+        options: [
+            {
+                name: "pseudo",
+                description: "Le pseudo du faux membre.",
+                type: Discord.ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
     
     {
         name: "pourcentage",
@@ -56,7 +70,6 @@ const commands = [
             {
                 name: "utilisateur",
                 description: "utilisateur à vérifier",
-                required: true,
                 type: Discord.ApplicationCommandOptionType.User,
                 required: false
             },
@@ -64,15 +77,13 @@ const commands = [
             {
                 name: "salon",
                 description: "salon à vérifier",
-                required: true,
                 type: Discord.ApplicationCommandOptionType.Channel,
                 required: false
             },
 
             {
                 name: "top",
-                description: "classement",
-                required: true,
+                description: "Classement ?",
                 type: Discord.ApplicationCommandOptionType.String,
                 required: false,
                 choices: [
@@ -98,6 +109,7 @@ const commands = [
         ]
     }
 ]
+
 module.exports = {
     name: "guildCreate",
     once: false,
