@@ -1,7 +1,7 @@
 # Bot crêpe PTB
 Le bot de test du [Serv Des Crêpes](https://discord.gg/5mzbtke9Jw).
 
-Sur cette branche il n'y a que les fichiers et le code concernant les fonctionnalités en cours de test ou pas encore implémentés dans le bot.
+Sur cette branche il n'y a que les fichiers et le code concernant les fonctionnalités en cours de test ou pas encore implémentées dans le bot.
 
 ## Structure du .env
 ### TOKEN
