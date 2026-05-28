@@ -1,5 +1,5 @@
 const Config = require("../config.json")
-const Discord = require(Config.ddiscordjs);
+const Discord = require("discord.js");
 const fs = require("fs");
 const Client = new Discord.Client({
     intents: [

@@ -1,6 +1,5 @@
 const Config = require("../config.json");
-const { Events } = require(Config.ddiscordjs);
-const Discord = require(Config.ddiscordjs);
+const Discord = require("discord.js");
 
 const vocalTimers = new Map();
 const soloTimers = new Map();
@@ -55,7 +54,7 @@ async function checkAllVoiceChannels(guild) {
 }
 
 module.exports = {
-    name: Events.VoiceStateUpdate,
+    name: Discord.Events.VoiceStateUpdate,
     once: false,
     async execute(oldState, newState) {
         const member = newState.member;
