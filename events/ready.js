@@ -19,7 +19,7 @@ function waitUntilReady(client) {
 }
 const commands = [
     {
-        name: "statssalon",
+        name: "statsconfigsalon",
         description: "Configurer la gestion des stats dans un salon.",
         default_member_permissions: 0x0000000000000008,
         options: [
