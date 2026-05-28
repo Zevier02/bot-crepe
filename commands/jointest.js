@@ -25,13 +25,21 @@ Canvas.registerFont("../RubikVar.ttf", {
 });
 
 module.exports = {
-    name: "guildMemberAdd",
-    once: false,
-    async execute(member){
-        if (member.user.bot) return;
+    data: new Discord.SlashCommandBuilder()
+        .setName("cardtest"),
+    async execute(interaction){
+        if(!interaction.isCommand) return;
+        const text = interaction.options.get("truc").value
 
-        // Ajout de await ici
-        await member.setNickname("Crêpe sans nom")
+        if(!interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)){
+            const embed = new Discord.EmbedBuilder()
+                .setColor("Red")
+                .setTitle("Cardtest")
+                .setDescription(`Tu n'as pas les permissions d'utiliser cette commande.`)
+                .setTimestamp()
+                .setFooter({text : `Utilisé par : ${interaction.user.tag}`});
+            return interaction.editReply({ embeds: [embed] })
+        }
 
         const color = `${Math.floor(Math.random() * 10) == 0 ? "#ffff00" : "#ffffff"}`;
         var canvas = Canvas.createCanvas(1000, 300);
@@ -52,7 +60,6 @@ module.exports = {
         ctx.fillStyle = color
         ctx.textAlign = "left";
 
-        const text = member.user.displayName;
         const maxWidth = 550; // largeur max autorisée
         let fontSize = 75;
 
@@ -70,7 +77,7 @@ module.exports = {
         ctx.closePath();
         ctx.clip();
         
-        var avatar = await Canvas.loadImage(member.user.avatarURL({ extension: 'png', size: 1024 }));
+        var avatar = await Canvas.loadImage(interaction.user.avatarURL({ extension: 'png', size: 1024 }));
         
         ctx.drawImage(avatar, 130, 50, 200, 200);
                     
@@ -81,11 +88,7 @@ module.exports = {
             .setColor(color)
             .setImage('attachment://welcome.png')
 
-        // Fetch et envoi avec await
-        await waitUntilReady(Client);
-        const channel = await Client.channels.fetch("1287103804055097374").catch(() => null);
-        if(channel){
-            await channel.send({ content: `<@${member.user.id}>`, embeds: [embed], files: [attachment] });
-        }
+
+        interaction.editReply({ embeds: [embed], files: [attachment] });
     }
 }

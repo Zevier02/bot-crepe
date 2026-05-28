@@ -7,6 +7,16 @@ module.exports = {
         .setName("pseudos"),
     async execute(interaction){
         if(interaction.isCommand){
+            if(!interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)){
+                const embed = new Discord.EmbedBuilder()
+                    .setColor("Red")
+                    .setTitle("Pseudos")
+                    .setDescription(`Tu n'as pas les permissions d'utiliser cette commande.`)
+                    .setTimestamp()
+                    .setFooter({text : `Modifier les pseudos : ${interaction.options.get("modifier").value == "true"? "Oui" : "Non"} | Utilisé par : ${interaction.user.tag}`});
+                return interaction.editReply({ embeds: [embed] })
+            }
+
             var members
             var users
             try {

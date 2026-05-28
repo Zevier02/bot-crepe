@@ -7,6 +7,16 @@ module.exports = {
         .setName("customdrop"),
     async execute(interaction){
         if(interaction.isCommand){
+            if(!interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)){
+                const embed = new Discord.EmbedBuilder()
+                    .setColor("Red")
+                    .setTitle("CustomDrop")
+                    .setDescription(`Tu n'as pas les permissions d'utiliser cette commande.`)
+                    .setTimestamp()
+                    .setFooter({text : `Utilisé par : ${interaction.user.tag}`});
+                return interaction.editReply({ embeds: [embed] })
+            }
+
             const drop = interaction.options.get("truc").value
             const embed = new Discord.EmbedBuilder()
                 .setColor("Yellow")

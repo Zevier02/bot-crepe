@@ -16,7 +16,6 @@ module.exports = {
             .setTitle("🗑️ Message supprimé")
             .addFields(
                 { name: "Auteur", value: `${message.author.tag} (<@${message.author.id}>)`, inline: true },
-<<<<<<< HEAD
                 { name: "Salon", value: `<#${message.channel.id}>`, inline: true },
             )
             .setTimestamp();
@@ -39,12 +38,6 @@ module.exports = {
         }
 
         // S'il y a des pièces jointes
-=======
-                { name: "Salon", value: `<#${message.channel.id}>`, inline: true }
-            )
-            .setTimestamp();
-
->>>>>>> 075b6a6 (Amélioration du log de message.)
         const files = [];
         const attachments = [];
 
