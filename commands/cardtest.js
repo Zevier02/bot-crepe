@@ -2,7 +2,7 @@ const Config = require("../config.json");
 const fs = require("fs");
 const fontkit = require("fontkit");
 const Canvas = require("canvas");
-const Discord = require(Config.ddiscordjs);
+const Discord = require("discord.js");
 
 Canvas.registerFont("./RubikVar.ttf", {
     family: "RubikVar"

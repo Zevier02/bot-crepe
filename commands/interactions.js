@@ -1,6 +1,5 @@
-const Config = require("../config.json")
-const fs = require("fs")
-const Discord = require(Config.ddiscordjs);
+const fs = require("fs");
+const Discord = require("discord.js");
 
 module.exports = {
     data: new Discord.StringSelectMenuBuilder()

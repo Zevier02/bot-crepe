@@ -1,10 +1,9 @@
 const Config = require("../config.json");
-const { Collection } = require(Config.ddiscordjs);
 const fs = require("fs");
-const Discord = require(Config.ddiscordjs);
+const Discord = require("discord.js");
 class Commands {
     constructor(){
-        this.list = new Collection();
+        this.list = new Discord.Collection();
         const commandFiles = fs.readdirSync(Config.commands).filter(file => file.endsWith(".js"));
 
         for(const file of commandFiles){

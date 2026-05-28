@@ -2,7 +2,7 @@ const Config = require("../config.json");
 const fs = require("fs");
 const fontkit = require("fontkit")
 const Canvas = require("canvas");
-const Discord = require(Config.ddiscordjs);
+const Discord = require("discord.js");
 
 const Client = new Discord.Client({
     intents: [
@@ -35,8 +35,8 @@ function normalizeText(text) {
         if (glyph.id === 0) {
             const normalizedChar = char.normalize("NFKD")
             const normalizedGlyph = font.glyphForCodePoint(normalizedChar.codePointAt(0));
-            
-            if(normalizedGlyph.id !== 0) {
+
+            if (normalizedGlyph.id !== 0) {
                 output = output + normalizedChar
             }
         }
@@ -51,7 +51,7 @@ function normalizeText(text) {
 module.exports = {
     name: "guildMemberAdd",
     once: false,
-    async execute(member){
+    async execute(member) {
         if (member.user.bot) return;
 
         // Ajout de await ici
@@ -59,12 +59,12 @@ module.exports = {
 
         const color = `${Math.floor(Math.random() * 10) == 0 ? "#ffff00" : "#ffffff"}`;
         var canvas = Canvas.createCanvas(1000, 300);
-                    
+
         const ctx = canvas.getContext("2d");
-                    
+
         var background = await Canvas.loadImage(Config.background);
         ctx.drawImage(background, 0, 0, 1000, 300);
-        
+
         ctx.font = "50px RubikVar";
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "left";
@@ -86,16 +86,16 @@ module.exports = {
 
 
         ctx.fillText(text, 400, 225);
-        
+
         ctx.beginPath();
         ctx.arc(230, 150, 100, 0, Math.PI * 2)
         ctx.closePath();
         ctx.clip();
-        
+
         var avatar = await Canvas.loadImage(member.user.avatarURL({ extension: 'png', size: 1024 }));
-        
+
         ctx.drawImage(avatar, 130, 50, 200, 200);
-                    
+
         var attachment = new Discord.AttachmentBuilder(canvas.toBuffer(), { name: 'welcome.png' });
         const embed = new Discord.EmbedBuilder()
             .setTitle("Une nouvelle crêpe est arrivée !")
@@ -106,7 +106,7 @@ module.exports = {
         // Fetch et envoi avec await
         await waitUntilReady(Client);
         const channel = await Client.channels.fetch("1287103804055097374").catch(() => null);
-        if(channel){
+        if (channel) {
             await channel.send({ content: `<@${member.user.id}>`, embeds: [embed], files: [attachment] });
         }
     }

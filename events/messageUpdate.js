@@ -1,5 +1,4 @@
-const Config = require("../config.json");
-const Discord = require(Config.ddiscordjs);
+const Discord = require("discord.js");
 
 module.exports = {
     name: "messageUpdate",
