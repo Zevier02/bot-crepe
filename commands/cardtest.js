@@ -1,4 +1,3 @@
-const Config = require("../config.json");
 const fs = require("fs");
 const fontkit = require("fontkit");
 const Canvas = require("canvas");
@@ -54,7 +53,7 @@ module.exports = {
                     
         const ctx = canvas.getContext("2d");
                     
-        var background = await Canvas.loadImage(Config.background);
+        var background = await Canvas.loadImage(process.env.BACKGROUND);
         ctx.drawImage(background, 0, 0, 1000, 300);
         
         ctx.font = "50px RubikVar";

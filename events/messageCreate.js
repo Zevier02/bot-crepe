@@ -1,4 +1,3 @@
-const Config = require("../config.json");
 const Discord = require("discord.js");
 
 function normalizePseudo(str) {
@@ -18,13 +17,13 @@ module.exports = {
     name: "messageCreate",
     once: false,
     async execute(message) {
-        if(message.channel.id == Config.renamechannel){
+        if(message.channel.id == process.env.RENAMECHANNEL){
             message.delete()
             if (message.author.bot) return;
-            if(message.member.roles.cache.has("1381407385230245978")){
+            if(message.member.roles.cache.has(process.env.FORBIDDENRENAME)){
                 const embed = new Discord.EmbedBuilder()
                     .setColor("Red")
-                    .setDescription("Tu ne peux pas te renommer, tu possède le rôle <@&1381407385230245978>.")
+                    .setDescription("Tu ne peux pas te renommer, tu possède le rôle <@&" + process.env.FORBIDDENRENAME + ">.")
                 message.member.send({ embeds: [embed] })
             }
             else {

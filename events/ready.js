@@ -1,4 +1,3 @@
-const Config = require("../config.json")
 const Discord = require("discord.js");
 const fs = require("fs");
 const statsHandler = require("../statsHandler.js")
@@ -9,7 +8,7 @@ const Client = new Discord.Client({
     ]
 });
 
-Client.login(Config.token);
+Client.login(process.env.TOKEN);
 
 function waitUntilReady(client) {
     return new Promise((resolve) => {
@@ -147,7 +146,7 @@ module.exports = {
         const guilds = Client.guilds.cache.map(g => g.id)
         while(guilds[i] != undefined){
             var guildid = [guilds[i]]
-            const rest = new Discord.REST({ version: "10" }).setToken(Config.token);
+            const rest = new Discord.REST({ version: "10" }).setToken(process.env.TOKEN);
             (async () => {
                 try {
                     console.log("Registering slash commands...")

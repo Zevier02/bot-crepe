@@ -1,4 +1,3 @@
-const Config = require("../config.json");
 const Discord = require("discord.js");
 
 module.exports = {
@@ -9,7 +8,7 @@ module.exports = {
         if (!message.guild || message.author.bot) return;
 
         const logChannel = await message.guild.channels.fetch("1371151736559108296").catch(() => null);
-        if (!logChannel || !logChannel.isTextBased() || message.channel.id == Config.renamechannel) return;
+        if (!logChannel || !logChannel.isTextBased() || message.channel.id == process.env.RENAMECHANNEL) return;
 
         const embed = new Discord.EmbedBuilder()
             .setColor("Yellow")
