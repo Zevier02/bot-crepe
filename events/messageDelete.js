@@ -39,21 +39,6 @@ module.exports = {
 
         // S'il y a des pièces jointes
         const files = [];
-        const attachments = [];
-
-        if(message.content.length > 1024){
-            const txtFile = new AttachmentBuilder(
-                Buffer.from(message.content, "utf-8"),
-                { name: "message.txt" }
-            );
-
-            attachments.push(txtFile);
-
-            embed.addFields({ name: "Contenu", value: "*Message trop long, voir la pièce-jointe message.txt.*"})
-        }
-        else if(message.content.length > 0){
-            embed.addFields({ name: "Contenu", value: message.content });
-        }
 
         // S'il y a des pièces jointes
         if (message.attachments.size > 0) {

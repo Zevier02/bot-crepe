@@ -1,35 +1,43 @@
 const Config = require("../config.json");
-const fontkit = require("fontkit");
 const fs = require("fs");
+const fontkit = require("fontkit");
 const Canvas = require("canvas");
 const Discord = require(Config.ddiscordjs);
 
-const Client = new Discord.Client({
-    intents: [
-        Discord.GatewayIntentBits.Guilds,
-        Discord.GatewayIntentBits.GuildMembers
-    ]
-});
-
-Client.login(Config.token)
-
-function waitUntilReady(client) {
-    return new Promise((resolve) => {
-        if (client.isReady()) return resolve();
-        client.once("ready", () => resolve());
-    });
-}
-
-Canvas.registerFont("../RubikVar.ttf", {
+Canvas.registerFont("./RubikVar.ttf", {
     family: "RubikVar"
 });
+
+const font = fontkit.openSync("./RubikVar.ttf");
+
+function normalizeText(text) {
+    var output = "";
+    for (const char of text) {
+        const glyph = font.glyphForCodePoint(char.codePointAt(0));
+
+        // glyph id 0 = caractère absent
+        if (glyph.id === 0) {
+            const normalizedChar = char.normalize("NFKD")
+            const normalizedGlyph = font.glyphForCodePoint(normalizedChar.codePointAt(0));
+            
+            if(normalizedGlyph.id !== 0) {
+                output = output + normalizedChar
+            }
+        }
+        else {
+            output = output + char
+        }
+    }
+
+    return output;
+}
 
 module.exports = {
     data: new Discord.SlashCommandBuilder()
         .setName("cardtest"),
     async execute(interaction){
         if(!interaction.isCommand) return;
-        const text = interaction.options.get("truc").value
+        const text = normalizeText(interaction.options.get("pseudo").value);
 
         if(!interaction.member.permissions.has(Discord.PermissionsBitField.Flags.Administrator)){
             const embed = new Discord.EmbedBuilder()
@@ -48,8 +56,6 @@ module.exports = {
                     
         var background = await Canvas.loadImage(Config.background);
         ctx.drawImage(background, 0, 0, 1000, 300);
-
-        const pseudotext = member.user.displayName
         
         ctx.font = "50px RubikVar";
         ctx.fillStyle = "#ffffff";

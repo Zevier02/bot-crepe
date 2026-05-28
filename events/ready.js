@@ -56,6 +56,20 @@ const commands = [
             }
         ]
     },
+
+    {
+        name: "cardtest",
+        description: "Envoie un test de carte de nouveau memebre comme quand quelqu'un rejoint.",
+        default_member_permissions: 0x0000000000000008,
+        options: [
+            {
+                name: "pseudo",
+                description: "Le pseudo du faux membre.",
+                type: Discord.ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
     
     {
         name: "pourcentage",

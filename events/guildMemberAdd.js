@@ -1,6 +1,6 @@
 const Config = require("../config.json");
-const fontkit = require("fontkit");
 const fs = require("fs");
+const fontkit = require("fontkit")
 const Canvas = require("canvas");
 const Discord = require(Config.ddiscordjs);
 
@@ -20,9 +20,33 @@ function waitUntilReady(client) {
     });
 }
 
-Canvas.registerFont("../RubikVar.ttf", {
+Canvas.registerFont("./RubikVar.ttf", {
     family: "RubikVar"
 });
+
+const font = fontkit.openSync("./RubikVar.ttf");
+
+function normalizeText(text) {
+    var output = "";
+    for (const char of text) {
+        const glyph = font.glyphForCodePoint(char.codePointAt(0));
+
+        // glyph id 0 = caractère absent
+        if (glyph.id === 0) {
+            const normalizedChar = char.normalize("NFKD")
+            const normalizedGlyph = font.glyphForCodePoint(normalizedChar.codePointAt(0));
+            
+            if(normalizedGlyph.id !== 0) {
+                output = output + normalizedChar
+            }
+        }
+        else {
+            output = output + char
+        }
+    }
+
+    return output;
+}
 
 module.exports = {
     name: "guildMemberAdd",
@@ -40,8 +64,6 @@ module.exports = {
                     
         var background = await Canvas.loadImage(Config.background);
         ctx.drawImage(background, 0, 0, 1000, 300);
-
-        const pseudotext = member.user.displayName
         
         ctx.font = "50px RubikVar";
         ctx.fillStyle = "#ffffff";
@@ -52,7 +74,7 @@ module.exports = {
         ctx.fillStyle = color
         ctx.textAlign = "left";
 
-        const text = member.user.displayName;
+        const text = normalizeText(member.user.displayName);
         const maxWidth = 550; // largeur max autorisée
         let fontSize = 75;
 
