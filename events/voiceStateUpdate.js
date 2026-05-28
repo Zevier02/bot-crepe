@@ -85,7 +85,6 @@ module.exports = {
             vocalTimers.set(member.id, timeout);
         }
 
-        // Cette ligne clé : on check **tous** les salons vocaux à chaque changement
         if (newState.guild) {
             await checkAllVoiceChannels(newState.guild);
         }

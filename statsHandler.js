@@ -43,7 +43,8 @@ async function initializeDatabase() {
         CREATE TABLE IF NOT EXISTS global (
         id VARCHAR(32) PRIMARY KEY,
         totalMessages BIGINT UNSIGNED NOT NULL DEFAULT 0,
-        totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0)
+        totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0),
+        connectedUsers JSON NOT NULL DEFAULT '[]')
     `);
 
     console.log("Database initialized.");
