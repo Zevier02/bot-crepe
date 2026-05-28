@@ -1,6 +1,5 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const statsHandler = require("../statsHandler.js")
 const Client = new Discord.Client({
     intents: [
         Discord.GatewayIntentBits.Guilds,
@@ -161,8 +160,6 @@ module.exports = {
             })();
             i += 1
         }
-
-        statsHandler.initializeDatabase();
 
         await waitUntilReady(Client)
         Client.user.setPresence({ activities: [{ name: 'les crêpes cuires', type: Discord.ActivityType.Listening }], status: 'online' });
