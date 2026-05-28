@@ -1,10 +1,9 @@
-const Config = require("../config.json");
 const fs = require("fs");
 const Discord = require("discord.js");
 class Commands {
     constructor(){
         this.list = new Discord.Collection();
-        const commandFiles = fs.readdirSync(Config.commands).filter(file => file.endsWith(".js"));
+        const commandFiles = fs.readdirSync(process.env.COMMANDS).filter(file => file.endsWith(".js"));
 
         for(const file of commandFiles){
             const command = require("../commands/" + file);
@@ -20,10 +19,10 @@ module.exports = {
     commands: new Commands(),
     async execute(interaction){
         const command = this.commands.list.get(interaction.commandName)
-        if(Config.ephemeral[interaction.commandName] == undefined){
+        if(process.env["EPHEMERAL_" + interaction.commandName.toUpperCase()] == undefined){
             await interaction.deferReply();
         }
-        else if(Config.ephemeral[interaction.commandName]){
+        else if(process.env["EPHEMERAL_" + interaction.commandName.toUpperCase()]){
             await interaction.deferReply({ flags: Discord.MessageFlags.Ephemeral });
         }
         else {

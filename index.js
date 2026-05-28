@@ -1,5 +1,7 @@
+//Charger l'env
+require("dotenv").config()
+
 //Requirements
-const Config = require("./config.json");
 const Discord = require("discord.js");
 const fs = require("fs");
 const path = require("path");
@@ -56,7 +58,7 @@ Client.on("messageCreate", async (message) => {
 });
 
 
-const eventFiles = fs.readdirSync(Config.events).filter(file => file.endsWith(".js"));
+const eventFiles = fs.readdirSync(process.env.EVENTS).filter(file => file.endsWith(".js"));
 
 //Event handler
 for (const file of eventFiles){
@@ -69,4 +71,4 @@ for (const file of eventFiles){
     }
 }
 
-Client.login(Config.token)
+Client.login(process.env.TOKEN)

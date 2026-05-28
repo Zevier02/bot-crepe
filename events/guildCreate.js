@@ -1,4 +1,3 @@
-const Config = require("../config.json")
 const Discord = require("discord.js");
 const fs = require("fs");
 const Client = new Discord.Client({
@@ -7,7 +6,7 @@ const Client = new Discord.Client({
         Discord.GatewayIntentBits.GuildMembers
     ]
 });
-Client.login(Config.token)
+Client.login(process.env.TOKEN);
 const commands = [
         {
         name: "statssalon",
@@ -36,11 +35,11 @@ module.exports = {
     name: "guildCreate",
     once: false,
     async execute(guild){
-        if(Config.guilds.indexOf(guild.id) == -1){
+        if(process.env.GUILDS != guild.id){
             guild.leave()
         }
         else {
-            const rest = new Discord.REST({ version: "10" }).setToken(Config.token);
+            const rest = new Discord.REST({ version: "10" }).setToken(process.env.TOKEN);
         (async () => {
                 try {
                     console.log("Registering slash commands...")
