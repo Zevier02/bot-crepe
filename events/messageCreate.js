@@ -11,7 +11,7 @@ module.exports = {
      */
     async execute(message) {
         if (message.author.bot) return;
-        
+
         const user = message.author;
 
         await Stats.createUserIfNotExists(user);

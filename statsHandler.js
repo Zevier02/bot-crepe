@@ -39,7 +39,9 @@ async function initializeDatabase() {
             messageCount BIGINT UNSIGNED NOT NULL DEFAULT 0,
             voiceTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
             messageChannels JSON NOT NULL DEFAULT '{}',
-            voiceChannels JSON NOT NULL DEFAULT '{}')
+            voiceChannels JSON NOT NULL DEFAULT '{}',
+            hourlyMessages JSON NOT NULL DEFAULT '{}',
+            hourlyVoice JSON NOT NULL DEFAULT '{}')
         `);
 
         await pool.execute(`
@@ -50,7 +52,9 @@ async function initializeDatabase() {
             usersMessages JSON NOT NULL DEFAULT '{}',
             totalMessages BIGINT UNSIGNED NOT NULL DEFAULT 0,
             usersVoice JSON DEFAULT NULL,
-            totalVoice BIGINT DEFAULT NULL)
+            totalVoice BIGINT DEFAULT NULL,
+            hourlyMessages JSON NOT NULL DEFAULT '{}',
+            hourlyVoice JSON NOT NULL DEFAULT '{}')
         `);
 
         await pool.execute(`
@@ -58,7 +62,9 @@ async function initializeDatabase() {
             id VARCHAR(32) PRIMARY KEY,
             totalMessages BIGINT UNSIGNED NOT NULL DEFAULT 0,
             totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0),
-            connectedUsers JSON NOT NULL DEFAULT '[]')
+            connectedUsers JSON NOT NULL DEFAULT '[]',
+            hourlyMessages JSON NOT NULL DEFAULT '{}',
+            hourlyVoice JSON NOT NULL DEFAULT '{}')
         `);
 
         console.log(getCaller() + " Database initialized.");
@@ -132,6 +138,15 @@ function parseUserData(userData){
     voiceChannels = parseStringToBigint(voiceChannels);
     userData.voiceChannels = voiceChannels;
 
+    let hourlyMessages = JSON.parse(userData.hourlyMessages);
+    hourlyMessages = parseStringToBigint(hourlyMessages);
+    userData.hourlyMessages = hourlyMessages;
+
+    let hourlyVoice = JSON.parse(userData.hourlyVoice);
+    hourlyVoice = parseStringToBigint(hourlyVoice);
+    userData.hourlyVoice = hourlyVoice;
+
+
     userData.messageCount = BigInt(userData.messageCount);
     userData.voiceTime = BigInt(userData.voiceTime);
 
@@ -150,6 +165,19 @@ function stringifyUserData(userData){
         voiceChannels = JSON.stringify(voiceChannels);
         userData.voiceChannels = voiceChannels;
     }
+
+    if(userData.hourlyMessages != null){
+        let hourlyMessages = parseBigintToString(userData.hourlyMessages);
+        hourlyMessages = JSON.stringify(hourlyMessages);
+        userData.hourlyMessages = hourlyMessages;
+    }
+    
+    if(userData.hourlyVoice != null){
+        let hourlyVoice = parseBigintToString(userData.hourlyVoice);
+        hourlyVoice = JSON.stringify(hourlyVoice);
+        userData.hourlyVoice = hourlyVoice;
+    }
+
 
     if(userData.messageCount != null)
         userData.messageCount = userData.messageCount.toString()
