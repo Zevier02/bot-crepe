@@ -1,0 +1,1 @@
+const Canvas = require("canvas");

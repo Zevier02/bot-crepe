@@ -1,7 +1,7 @@
 /**
  * Convertit une date en format YYYY-MM-DD-HH.
  * 
- * @param {Date} La date à convertir.
+ * @param {Date} Date - La date à convertir.
  * @returns {String} Date - La date en format YYYY-MM-DD-HH.
  */
 function dateKey(date = new Date()) {
@@ -13,6 +13,51 @@ function dateKey(date = new Date()) {
     return `${year}-${month}-${day}-${hour}`;
 }
 
+/**
+ * Convertit une date en format dateKey (YYYY-MM-DD-HH) en nombre pour pouvoir les comparer (décimales: YYYYMMDDHH).
+ * (plus récent = valeur plus élevée)
+ * 
+ * @param {String} dateKey - La date à convertir en format YYYY-MM-DD-HH. 
+ * @returns {Number} intDate - La date convertie (décimales: YYYYMMDDHH).
+ */
+function intDate(dateKey) {return Number(dateKey.replaceAll("-", ""))};
+
+/**
+ * Renvoie le nombre de messages envoyés de `fromDate` à `toDate`.
+ * 
+ * @param {Object} userData - Les données de l'utilisateur.
+ * @param {Date} fromDate - La date de départ.
+ * @param {Date} toDate - La date d'arrivée.
+ * @returns {bigint} Count - Le nombre de messages envoyés.
+ */
+function getMessageCountFromTo(userData, fromDate, toDate = new Date()) {
+    fromDate = dateKey(fromDate);
+    toDate = dateKey(toDate);
+
+    // Trier hourlyMessages du plus récent au plus acien.
+    const hourlyMessages = Object.entries(userData.hourlyMessages).sort(([idA], [idB]) => Number(idB.replaceAll("-", "")) - Number(idA.replaceAll("-", "")));
+    
+    let count = 0n
+    for (const [date, values] of hourlyMessages) { // Parcourt hourlyMessages du plus récent au plus ancien.
+        if(intDate(date) - intDate(fromDate) < 0) { // Si la date est avant fromDate
+            break;
+        }
+
+        if(intDate(date) - intDate(toDate) > 0) { // Si la date est après toDate
+            continue;
+        }
+
+        Object.keys(values).forEach(index => {
+            const value = values[index];
+
+            count += value;
+        });
+    };
+
+    return count;
+}
+
 module.exports = {
-    dateKey
+    dateKey,
+    getMessageCountFromTo
 }
