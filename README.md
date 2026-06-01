@@ -2,6 +2,7 @@
 Le bot de test du [Serv Des Crêpes](https://discord.gg/5mzbtke9Jw).
 
 Sur cette branche il n'y a que les fichiers et le code concernant les fonctionnalités en cours de test ou pas encore implémentées dans le bot.
+Cela dans le but d'éviter les doublons lors des tests sur le serveur entre Robot de crêpe et la version de test.
 Il n'y aura donc pas de pull request et de merge habituel.
 
 ## Structure du .env
