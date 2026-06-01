@@ -6,8 +6,8 @@ module.exports = {
     once: false,
 
     /**
-     * @param {import('discord.js').VoiceState} oldState
-     * @param {import('discord.js').VoiceState} newState
+     * @param {Discord.VoiceState} oldState
+     * @param {Discord.VoiceState} newState
      */
     async execute(oldState, newState) {
         const member = newState.member;

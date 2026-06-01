@@ -61,13 +61,13 @@ async function initializeDatabase() {
             CREATE TABLE IF NOT EXISTS global (
             id VARCHAR(32) PRIMARY KEY,
             totalMessages BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0),
+            totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0,
             connectedUsers JSON NOT NULL DEFAULT '[]',
             hourlyMessages JSON NOT NULL DEFAULT '{}',
             hourlyVoice JSON NOT NULL DEFAULT '{}')
         `);
 
-        console.log(getCaller() + " Database initialized.");
+        console.log("Database initialized.");
 
         return true;
     } catch(error) {
@@ -78,6 +78,7 @@ async function initializeDatabase() {
 
 /**
  * Créé un utilisateur dans la base de données si il n'existe pas.
+ * Met également à jour les données de l'utilisateur (username, avatarURL).
  * 
  * @param {import('discord.js').User} user - Utilisateur à rajouter.
  * @returns {boolean} success - `true` en cas de succès et `false` en cas d'erreur.
@@ -85,20 +86,30 @@ async function initializeDatabase() {
 async function createUserIfNotExists(user) {
     try {
         const id = user.id;
+        const username = user.tag;
+        const avatarURL = user.displayAvatarURL({ extension: 'png', size: 1024 });
 
         const [rows] = await pool.execute('SELECT * FROM users WHERE id = ?', [id]);
 
         if (rows.length === 0) {
-            const username = user.tag;
-            const avatarURL = user.displayAvatarURL({ extension: 'png', size: 1024 });
-
             await pool.execute(
                 'INSERT INTO users (id, username, avatarURL) VALUES (?, ?, ?)',
                 [id, username, avatarURL]
             );
-
-            return true;
         }
+        else {
+            const userData = parseUserData(rows[0]);
+
+            if(userData.username == username && userData.avatarURL == avatarURL) return true;
+
+            await pool.execute(
+                `UPDATE users SET username = ?, avatarURL= ? WHERE id = ?`,
+                [username, avatarURL, id]
+            );
+        }
+
+        return true;
+
     } catch(error) {
         console.error(`Impossible de créer un nouvel utilisateur :\n${error}`);
         return false;
@@ -139,11 +150,19 @@ function parseUserData(userData){
     userData.voiceChannels = voiceChannels;
 
     let hourlyMessages = JSON.parse(userData.hourlyMessages);
-    hourlyMessages = parseStringToBigint(hourlyMessages);
+
+    Object.keys(hourlyMessages).forEach(index => {
+        hourlyMessages[index] = parseStringToBigint(hourlyMessages[index]);
+    });
+
     userData.hourlyMessages = hourlyMessages;
 
     let hourlyVoice = JSON.parse(userData.hourlyVoice);
-    hourlyVoice = parseStringToBigint(hourlyVoice);
+
+    Object.keys(hourlyVoice).forEach(index => {
+        hourlyVoice[index] = parseStringToBigint(hourlyVoice[index]);
+    });
+
     userData.hourlyVoice = hourlyVoice;
 
 
@@ -167,15 +186,19 @@ function stringifyUserData(userData){
     }
 
     if(userData.hourlyMessages != null){
-        let hourlyMessages = parseBigintToString(userData.hourlyMessages);
-        hourlyMessages = JSON.stringify(hourlyMessages);
-        userData.hourlyMessages = hourlyMessages;
+        Object.keys(userData.hourlyMessages).forEach(index => {
+            userData.hourlyMessages[index] = parseBigintToString(userData.hourlyMessages[index]);
+        });
+
+        userData.hourlyMessages = JSON.stringify(userData.hourlyMessages);
     }
     
     if(userData.hourlyVoice != null){
-        let hourlyVoice = parseBigintToString(userData.hourlyVoice);
-        hourlyVoice = JSON.stringify(hourlyVoice);
-        userData.hourlyVoice = hourlyVoice;
+        Object.keys(userData.hourlyVoice).forEach(index => {
+            userData.hourlyVoice[index] = parseBigintToString(userData.hourlyVoice[index]);
+        });
+
+        userData.hourlyVoice = JSON.stringify(userData.hourlyVoice);
     }
 
 
@@ -210,8 +233,10 @@ async function updateUser(user, fieldsToUpdate){
         const fields = Object.keys(fieldsToUpdate);
         const values = [...Object.values(fieldsToUpdate), user.id];
 
+        const setClause = fields.map(f => `${f} = ?`).join(', ');
+
         await pool.execute(
-            `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+            `UPDATE users SET ${setClause} WHERE id = ?`,
             values
         );
 
@@ -234,7 +259,9 @@ async function updateUser(user, fieldsToUpdate){
  *   username: string,
  *   avatarURL: string,
  *   messageChannels: Object.<string, bigint>,
- *   voiceChannels: Object.<string, bigint>
+ *   voiceChannels: Object.<string, bigint>,
+ *   hourlyMessages: Object.<string, Object.<string, bigint>>,
+ *   hourlyVoice: Object.<string, Object.<string, bigint>>,
  * } | null} userData - Les données de l'utilisateur ou `null` si il n'exsite pas. 
  */
 async function getUser(user){

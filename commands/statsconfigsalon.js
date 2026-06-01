@@ -4,6 +4,10 @@ const Discord = require("discord.js");
 module.exports = {
     data: new Discord.SlashCommandBuilder()
         .setName("statsconfigsalon"),
+
+    /**
+     * @param {Discord.Interaction} interaction 
+     */
     async execute(interaction){
         if(!interaction.isCommand) return;
 
@@ -19,6 +23,6 @@ module.exports = {
 
 
         const configChannel = interaction.options.get("salon").value;
-        const boost = interaction.options.get("boost")? interaction.options.get("boost").value : null;
+        const boost = interaction.options.get("boost")? Number(interaction.options.get("boost").value) : null;
     }
 }

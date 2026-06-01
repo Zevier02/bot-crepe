@@ -16,26 +16,24 @@ function waitUntilReady(client) {
         client.once("ready", () => resolve());
     });
 }
+
 const commands = [
     {
-        name: "statsconfigsalon",
-        description: "Configurer la gestion des stats dans un salon.",
+        name: "stats",
+        description: "Regarder les statistiques.",
         default_member_permissions: 0x0000000000000008,
         options: [
             {
-                name: "salon",
-                description: "Le salon à configurer",
-                type: Discord.ApplicationCommandOptionType.Channel,
-                required: true
-            },
-            
-            {
-                name: "boost",
-                description: "Le boost de statistiques appliqués à ce salon (défaut 1, 0 pour désactiver le gain de stats dans le salon).",
-                type: Discord.ApplicationCommandOptionType.Number,
-                required: false,
-                minValue: 0,
-    			maxValue: 5
+                name: "utilisateur",
+                description: "Regarder les statistiques d'un utilisateur.",
+                type: Discord.ApplicationCommandOptionType.Subcommand,
+                options: [
+                    {
+                        name: "utilisateur",
+                        description: "L'utilisateur dont il faut regarder les statistiques.",
+                        type: Discord.ApplicationCommandOptionType.User
+                    }
+                ]
             }
         ]
     }

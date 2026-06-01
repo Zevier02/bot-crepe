@@ -1,13 +1,13 @@
-const Config = require("../config.json");
 const Discord = require("discord.js");
-const Stats = require("../statsHandler")
+const Stats = require("../statsHandler");
+const Time = require("../timeHandler")
 
 module.exports = {
     name: "messageCreate",
     once: false,
 
     /**
-     * @param {import('discord.js').Message} message
+     * @param {Discord.Message} message
      */
     async execute(message) {
         if (message.author.bot) return;
@@ -18,15 +18,25 @@ module.exports = {
 
         const userData = await Stats.getUser(user);
 
+
         userData.messageCount += 1n
 
+        const currentTime = Time.dateKey()
+
+        userData.hourlyMessages[currentTime] =
+            (userData.hourlyMessages[currentTime] ?? {});
+
+        userData.hourlyMessages[currentTime][message.channelId] =
+            (userData.hourlyMessages[currentTime][message.channelId] ?? 0n) + 1n;
+
         userData.messageChannels[message.channelId] =
-            (userData.messageChannels[message.channelId] ?? 0) + 1;
+            (userData.messageChannels[message.channelId] ?? 0n) + 1n;
 
         Stats.updateUser(user,
             {
                 messageCount: userData.messageCount,
-                messageChannels: userData.messageChannels
+                messageChannels: userData.messageChannels,
+                hourlyMessages: userData.hourlyMessages
             }
         );
     }
