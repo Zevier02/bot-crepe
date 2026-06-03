@@ -11,6 +11,11 @@ const Client = new Discord.Client({
 
 Client.login(process.env.TOKEN);
 
+registerFont("./NotoSans.ttf", {
+    family: "NotoSans"
+});
+
+
 function waitUntilReady(client) {
     return new Promise((resolve) => {
         if (client.isReady()) return resolve();
@@ -20,7 +25,7 @@ function waitUntilReady(client) {
 
 function canvasText(ctx, text, fontSize, position, maxWidth){
     do {
-        ctx.font = `${fontSize}px sans-serif`;
+        ctx.font = `${fontSize}px NotoSans`;
         fontSize--;
     } while (ctx.measureText(text).width > maxWidth && fontSize > 10);
 
