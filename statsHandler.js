@@ -40,21 +40,21 @@ async function initializeDatabase() {
             voiceTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
             messageChannels JSON NOT NULL DEFAULT '{}',
             voiceChannels JSON NOT NULL DEFAULT '{}',
-            hourlyMessages JSON NOT NULL DEFAULT '{}',
-            hourlyVoice JSON NOT NULL DEFAULT '{}')
+            messages JSON NOT NULL DEFAULT '[]',
+            voices JSON NOT NULL DEFAULT '[]')
         `);
 
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS channels (
             id VARCHAR(32) PRIMARY KEY,
             boost FLOAT DEFAULT 1,
-            textBased BOOLEAN NOT NULL DEFAULT FALSE,
+            textBased BOOLEAN NOT NULL DEFAULT TRUE,
             usersMessages JSON NOT NULL DEFAULT '{}',
             totalMessages BIGINT UNSIGNED NOT NULL DEFAULT 0,
             usersVoice JSON DEFAULT NULL,
             totalVoice BIGINT DEFAULT NULL,
-            hourlyMessages JSON NOT NULL DEFAULT '{}',
-            hourlyVoice JSON NOT NULL DEFAULT '{}')
+            messages JSON NOT NULL DEFAULT '[]',
+            voices JSON)
         `);
 
         await pool.execute(`
@@ -62,9 +62,7 @@ async function initializeDatabase() {
             id VARCHAR(32) PRIMARY KEY,
             totalMessages BIGINT UNSIGNED NOT NULL DEFAULT 0,
             totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            connectedUsers JSON NOT NULL DEFAULT '[]',
-            hourlyMessages JSON NOT NULL DEFAULT '{}',
-            hourlyVoice JSON NOT NULL DEFAULT '{}')
+            connectedUsers JSON NOT NULL DEFAULT '[]')
         `);
 
         console.log("Database initialized.");
@@ -149,22 +147,8 @@ function parseUserData(userData){
     voiceChannels = parseStringToBigint(voiceChannels);
     userData.voiceChannels = voiceChannels;
 
-    let hourlyMessages = JSON.parse(userData.hourlyMessages);
-
-    Object.keys(hourlyMessages).forEach(index => {
-        hourlyMessages[index] = parseStringToBigint(hourlyMessages[index]);
-    });
-
-    userData.hourlyMessages = hourlyMessages;
-
-    let hourlyVoice = JSON.parse(userData.hourlyVoice);
-
-    Object.keys(hourlyVoice).forEach(index => {
-        hourlyVoice[index] = parseStringToBigint(hourlyVoice[index]);
-    });
-
-    userData.hourlyVoice = hourlyVoice;
-
+    userData.messages = JSON.parse(userData.messages);
+    userData.voices = JSON.parse(userData.voices);
 
     userData.messageCount = BigInt(userData.messageCount);
     userData.voiceTime = BigInt(userData.voiceTime);
@@ -185,20 +169,12 @@ function stringifyUserData(userData){
         userData.voiceChannels = voiceChannels;
     }
 
-    if(userData.hourlyMessages != null){
-        Object.keys(userData.hourlyMessages).forEach(index => {
-            userData.hourlyMessages[index] = parseBigintToString(userData.hourlyMessages[index]);
-        });
-
-        userData.hourlyMessages = JSON.stringify(userData.hourlyMessages);
+    if(userData.messages != null){
+        userData.messages = JSON.stringify(userData.messages);
     }
-    
-    if(userData.hourlyVoice != null){
-        Object.keys(userData.hourlyVoice).forEach(index => {
-            userData.hourlyVoice[index] = parseBigintToString(userData.hourlyVoice[index]);
-        });
 
-        userData.hourlyVoice = JSON.stringify(userData.hourlyVoice);
+    if(userData.voices != null){
+        userData.voices = JSON.stringify(userData.voices);
     }
 
 
@@ -260,8 +236,8 @@ async function updateUser(user, fieldsToUpdate){
  *   avatarURL: string,
  *   messageChannels: Object.<string, bigint>,
  *   voiceChannels: Object.<string, bigint>,
- *   hourlyMessages: Object.<string, Object.<string, bigint>>,
- *   hourlyVoice: Object.<string, Object.<string, bigint>>,
+ *   messages: Array,
+ *   voices: Array,
  * } | null} userData - Les données de l'utilisateur ou `null` si il n'exsite pas. 
  */
 async function getUser(user){

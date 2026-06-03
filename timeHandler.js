@@ -35,23 +35,19 @@ function getMessageCountFromTo(userData, fromDate, toDate = new Date()) {
     toDate = dateKey(toDate);
 
     // Trier hourlyMessages du plus récent au plus acien.
-    const hourlyMessages = Object.entries(userData.hourlyMessages).sort(([idA], [idB]) => Number(idB.replaceAll("-", "")) - Number(idA.replaceAll("-", "")));
+    const messages = userData.messages
     
     let count = 0n
-    for (const [date, values] of hourlyMessages) { // Parcourt hourlyMessages du plus récent au plus ancien.
-        if(intDate(date) - intDate(fromDate) < 0) { // Si la date est avant fromDate
+    for (const message of [...messages].reverse()) { // Parcourt hourlyMessages du plus récent au plus ancien.
+        if(intDate(message.date) - intDate(fromDate) < 0) { // Si la date est avant fromDate
             break;
         }
 
-        if(intDate(date) - intDate(toDate) > 0) { // Si la date est après toDate
+        if(intDate(message.date) - intDate(toDate) > 0) { // Si la date est après toDate
             continue;
         }
 
-        Object.keys(values).forEach(index => {
-            const value = values[index];
-
-            count += value;
-        });
+        count += 1n;
     };
 
     return count;

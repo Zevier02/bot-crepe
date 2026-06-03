@@ -23,11 +23,12 @@ module.exports = {
 
         const currentTime = Time.dateKey()
 
-        userData.hourlyMessages[currentTime] =
-            (userData.hourlyMessages[currentTime] ?? {});
+        const Message = {
+            channel: message.channelId,
+            date: currentTime
+        }
 
-        userData.hourlyMessages[currentTime][message.channelId] =
-            (userData.hourlyMessages[currentTime][message.channelId] ?? 0n) + 1n;
+        userData.messages.push(Message)
 
         userData.messageChannels[message.channelId] =
             (userData.messageChannels[message.channelId] ?? 0n) + 1n;
@@ -36,7 +37,7 @@ module.exports = {
             {
                 messageCount: userData.messageCount,
                 messageChannels: userData.messageChannels,
-                hourlyMessages: userData.hourlyMessages
+                messages: userData.messages
             }
         );
     }
