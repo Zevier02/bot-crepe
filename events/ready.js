@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const statsHandler = require("../statsHandler.js")
+const Stats = require("../statsHandler.js");
 const Client = new Discord.Client({
     intents: [
         Discord.GatewayIntentBits.Guilds,
@@ -63,6 +63,10 @@ module.exports = {
     once: true,
     async execute(){
         console.log("Bot ready.");
+
+        await Stats.initializeDatabase();
+        await waitUntilReady(Client);
+
         let i = 0
         const guilds = Client.guilds.cache.map(g => g.id)
         while(guilds[i] != undefined){
@@ -83,9 +87,6 @@ module.exports = {
             i += 1
         }
 
-        statsHandler.initializeDatabase();
-
-        await waitUntilReady(Client)
         Client.user.setPresence({ activities: [{ name: 'les crêpes cuires', type: Discord.ActivityType.Listening }], status: 'online' });
         const channel = await Client.channels.fetch('1383815098606424235');
         setTimeout(() => {
@@ -93,6 +94,8 @@ module.exports = {
             setInterval(() => {
                 clearMessages(channel)
             }, 1000 * 60 * 60 * 24)
-        }, msUntilMidnight())
+        }, msUntilMidnight());
+
+        await Stats.checkAllVoices(Client);
     }
 }

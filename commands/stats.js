@@ -14,7 +14,7 @@ module.exports = {
     data: new Discord.SlashCommandBuilder()
         .setName("stats"),
     async execute(interaction){
-        if(!interaction.isCommand) return;
+        if(!interaction.isCommand()) return;
 
 		const subcommandName = interaction.options.getSubcommand();
         const subcommand = subcommands.find(s => s.data.name === subcommandName);

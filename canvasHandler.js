@@ -269,7 +269,7 @@ async function createUserStats(user, userData) {
         const voiceTime = Stats.getVoiceTimeFromTo(userData, fromDate, toDate);
 
         messageData.push(messageCount);
-        voiceData.push(voiceTime);
+        voiceData.push(Math.floor(voiceTime / 3600000));
 
         toDate.setDate(toDate.getDate() - 1);
         fromDate.setDate(fromDate.getDate() - 1);

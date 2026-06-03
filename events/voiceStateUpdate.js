@@ -15,8 +15,131 @@ module.exports = {
 
         await Stats.createUserIfNotExists(user)
 
+        const globalData = await Stats.getGlobal();
+        const userData = await Stats.getUser(user);
+        const now = Date.now();
+
+        const userFieldsToUpdate = {};
+        const globalFieldsToUpdate = {};
+
         if(!oldState.channel && newState.channel){ // Vient de rejoindre un salon.
-            const userData = await Stats.getUser(user);
+            const Voice = {
+                channel: newState.channelId,
+                date: now,
+                duration: null
+            }
+
+            userData.voices.push(Voice);
+
+            userFieldsToUpdate.voices = userData.voices;
+
+            if(globalData.connectedUsers.indexOf(user.id) === -1){
+                globalData.connectedUsers.push(user.id);
+                globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
+            }
         }
+        else if(oldState.channel && newState.channel){ // Déplacement vers un nouveau salon.
+            await Stats.createChannelIfNotExists(oldState.channel);
+            const oldChannelData = await Stats.getChannel(oldState.channel); 
+
+            const Voice = {
+                channel: newState.channelId,
+                date: now,
+                duration: null
+            }
+
+            const lastVoice = userData.voices[userData.voices.length - 1];
+            const duration = now - lastVoice.date;
+
+            lastVoice.duration = duration;
+
+            userData.voiceTime += duration;
+
+            globalData.totalVoice += duration;
+
+            oldChannelData.totalVoice += duration;
+
+            const channelVoice = {
+                date: lastVoice.date,
+                duration: lastVoice.duration,
+                user: user.id
+            }
+
+            oldChannelData.voices.push(channelVoice);
+            oldChannelData.usersVoice[user.id] =
+                (oldChannelData.usersVoice[user.id] ?? 0) + duration;
+
+            globalFieldsToUpdate.totalVoice = globalData.totalVoice;
+
+            userData.voiceChannels[lastVoice.channel] =
+                (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
+
+            userData.voices.push(Voice);
+
+            userFieldsToUpdate.voices = userData.voices;
+            userFieldsToUpdate.voiceChannels = userData.voiceChannels;
+            userFieldsToUpdate.voiceTime = userData.voiceTime;
+
+            if(globalData.connectedUsers.indexOf(user.id) === -1){
+                globalData.connectedUsers.push(user.id);
+                globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
+            }
+
+            await Stats.updateChannel(oldState.channel, {
+                totalvoice: oldChannelData.totalVoice,
+                voices: oldChannelData.voices,
+                usersVoice: oldChannelData.usersVoice
+            });
+        }
+        else if(oldState.channel && !newState.channel){ // Déconnection.
+            await Stats.createChannelIfNotExists(oldState.channel);
+            const oldChannelData = await Stats.getChannel(oldState.channel); 
+
+            const lastVoice = userData.voices[userData.voices.length - 1];
+            const duration = now - lastVoice.date;
+            lastVoice.duration = duration;
+
+            userData.voiceTime += duration;
+
+            const index = globalData.connectedUsers.indexOf(user.id);
+
+            if(index !== -1){
+                globalData.connectedUsers.splice(index, 1);
+                globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
+            }
+
+            globalData.totalVoice += duration;
+
+            oldChannelData.totalVoice += duration;
+
+            const channelVoice = {
+                date: lastVoice.date,
+                duration: lastVoice.duration,
+                user: user.id
+            }
+
+            oldChannelData.voices.push(channelVoice);
+            oldChannelData.usersVoice[user.id] =
+                (oldChannelData.usersVoice[user.id] ?? 0) + duration;
+
+            globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
+            globalFieldsToUpdate.totalVoice = globalData.totalVoice;
+
+            userData.voiceChannels[lastVoice.channel] =
+                (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
+
+            userFieldsToUpdate.voices = userData.voices;
+            userFieldsToUpdate.voiceChannels = userData.voiceChannels;
+            userFieldsToUpdate.voiceTime = userData.voiceTime;
+
+            await Stats.updateChannel(oldState.channel, {
+                totalvoice: oldChannelData.totalVoice,
+                voices: oldChannelData.voices,
+                usersVoice: oldChannelData.usersVoice
+            });
+        }
+
+        await Stats.updateUser(user, userFieldsToUpdate);
+        await Stats.updateGlobal(globalFieldsToUpdate);
     }
 };
