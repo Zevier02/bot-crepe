@@ -19,19 +19,19 @@ module.exports = {
         const userData = await Stats.getUser(user);
 
 
-        userData.messageCount += 1n
+        userData.messageCount += 1;
 
-        const currentTime = Time.dateKey()
+        const currentTime = Date.now();
 
         const Message = {
             channel: message.channelId,
             date: currentTime
         }
 
-        userData.messages.push(Message)
+        userData.messages.push(Message);
 
         userData.messageChannels[message.channelId] =
-            (userData.messageChannels[message.channelId] ?? 0n) + 1n;
+            (userData.messageChannels[message.channelId] ?? 0) + 1;
 
         Stats.updateUser(user,
             {

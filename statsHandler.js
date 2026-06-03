@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const Time = require("./timeHandler");
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -34,10 +35,8 @@ async function initializeDatabase() {
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS users (
             id VARCHAR(32) PRIMARY KEY,
-            username VARCHAR(100) NOT NULL,
-            avatarURL TEXT NOT NULL,
-            messageCount BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            voiceTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            messageCount INTEGER UNSIGNED NOT NULL DEFAULT 0,
+            voiceTime INTEGER UNSIGNED NOT NULL DEFAULT 0,
             messageChannels JSON NOT NULL DEFAULT '{}',
             voiceChannels JSON NOT NULL DEFAULT '{}',
             messages JSON NOT NULL DEFAULT '[]',
@@ -91,18 +90,8 @@ async function createUserIfNotExists(user) {
 
         if (rows.length === 0) {
             await pool.execute(
-                'INSERT INTO users (id, username, avatarURL) VALUES (?, ?, ?)',
-                [id, username, avatarURL]
-            );
-        }
-        else {
-            const userData = parseUserData(rows[0]);
-
-            if(userData.username == username && userData.avatarURL == avatarURL) return true;
-
-            await pool.execute(
-                `UPDATE users SET username = ?, avatarURL= ? WHERE id = ?`,
-                [username, avatarURL, id]
+                'INSERT INTO users (id) VALUES (?)',
+                [id]
             );
         }
 
@@ -114,59 +103,25 @@ async function createUserIfNotExists(user) {
     }
 }
 
-function parseStringToBigint(object) {
-    for (const key in object) {
-        const value = object[key];
-
-        if (typeof value === "string" && /^\d+$/.test(value)) {
-            object[key] = BigInt(value);
-        }
-    }
-
-    return object;
-}
-
-function parseBigintToString(object) {
-    for (const key in object) {
-        const value = object[key];
-
-        if (typeof value === "bigint") {
-            object[key] = value.toString();
-        }
-    }
-
-    return object;
-}
-
 function parseUserData(userData){
-    let messageChannels = JSON.parse(userData.messageChannels);
-    messageChannels = parseStringToBigint(messageChannels);
-    userData.messageChannels = messageChannels;
+    userData.messageChannels = JSON.parse(userData.messageChannels);
 
-    let voiceChannels = JSON.parse(userData.voiceChannels);
-    voiceChannels = parseStringToBigint(voiceChannels);
-    userData.voiceChannels = voiceChannels;
+    userData.voiceChannels = JSON.parse(userData.voiceChannels);
 
     userData.messages = JSON.parse(userData.messages);
-    userData.voices = JSON.parse(userData.voices);
 
-    userData.messageCount = BigInt(userData.messageCount);
-    userData.voiceTime = BigInt(userData.voiceTime);
+    userData.voices = JSON.parse(userData.voices);
 
     return userData;
 }
 
 function stringifyUserData(userData){
     if(userData.messageChannels != null){
-        let messageChannels = parseBigintToString(userData.messageChannels);
-        messageChannels = JSON.stringify(messageChannels);
-        userData.messageChannels = messageChannels;
+        userData.messageChannels = JSON.stringify(userData.messageChannels);
     }
     
     if(userData.voiceChannels != null){
-        let voiceChannels = parseBigintToString(userData.voiceChannels);
-        voiceChannels = JSON.stringify(voiceChannels);
-        userData.voiceChannels = voiceChannels;
+        voiceChannels = JSON.stringify(userData.voiceChannels);
     }
 
     if(userData.messages != null){
@@ -176,13 +131,6 @@ function stringifyUserData(userData){
     if(userData.voices != null){
         userData.voices = JSON.stringify(userData.voices);
     }
-
-
-    if(userData.messageCount != null)
-        userData.messageCount = userData.messageCount.toString()
-
-    if(userData.voiceTime != null)
-        userData.voiceTime = userData.voiceTime.toString()
 
     return userData;
 }
@@ -230,12 +178,10 @@ async function updateUser(user, fieldsToUpdate){
  * @param {import('discord.js').User} user - Utilisateur dont les données sont récupérées.
  * @returns {{
  *   id: string,
- *   messageCount: bigint,
- *   voiceTime: bigint,
- *   username: string,
- *   avatarURL: string,
- *   messageChannels: Object.<string, bigint>,
- *   voiceChannels: Object.<string, bigint>,
+ *   messageCount: Number,
+ *   voiceTime: Number,
+ *   messageChannels: Object.<string, Number>,
+ *   voiceChannels: Object.<string, Number>,
  *   messages: Array,
  *   voices: Array,
  * } | null} userData - Les données de l'utilisateur ou `null` si il n'exsite pas. 
@@ -251,9 +197,131 @@ async function getUser(user){
     return userData;
 }
 
+/**
+ * Donne le classement de l'utilisateur dans le nombre de messages (en partant de 1).
+ * 
+ * @param {import('discord.js').User} user - Utilisateur dont le classement est à récupérer.
+ * @returns {Number | null} rank - Le classement de l'utilisateur ou `null` en cas d'erreur. 
+ */
+async function userMessageRank(user) {
+    const id = user.id;
+    try {
+        const [[result]] = await pool.execute(`
+            SELECT COUNT(*) + 1 AS position
+            FROM users
+            WHERE messageCount > (
+                SELECT messageCount FROM users WHERE id = ?
+            )
+        `, [id]);
+
+        return result.position;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le classement de l'utilisateur :\n${error}`);
+        return null;
+    }
+}
+
+/**
+ * Donne le classement de l'utilisateur dans le temps de vocal (en partant de 1).
+ * 
+ * @param {import('discord.js').User} user - Utilisateur dont le classement est à récupérer.
+ * @returns {Number | null} rank - Le classement de l'utilisateur ou `null` en cas d'erreur. 
+ */
+async function userVoiceRank(user) {
+    const id = user.id;
+    try {
+        const [[result]] = await pool.execute(`
+            SELECT COUNT(*) + 1 AS position
+            FROM users
+            WHERE voiceTime > (
+                SELECT voiceTime FROM users WHERE id = ?
+            )
+        `, [id]);
+
+        return result.position;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le classement de l'utilisateur :\n${error}`);
+        return null;
+    }
+}
+
+/**
+ * Renvoie le nombre de messages envoyés de `fromDate` à `toDate`.
+ * 
+ * @param {Object} userData - Les données de l'utilisateur.
+ * @param {Date} fromDate - La date de départ.
+ * @param {Date} toDate - La date d'arrivée.
+ * @returns {Number} Count - Le nombre de messages envoyés.
+ */
+function getMessageCountFromTo(userData, fromDate, toDate = new Date()) {
+    fromDate = fromDate.getTime();
+    toDate = toDate.getTime();
+
+    const messages = userData.messages;
+    
+    let count = 0
+    for (const message of [...messages].reverse()) { // Parcourt messages du plus récent au plus ancien.
+        if(message.date < fromDate) { // Si la date est avant fromDate
+            break;
+        }
+
+        if(message.date > toDate) { // Si la date est après toDate
+            continue;
+        }
+
+        count += 1;
+    };
+
+    return count;
+}
+
+/**
+ * Renvoie le temps de vocal de `fromDate` à `toDate` en ms.
+ * 
+ * @param {Object} userData - Les données de l'utilisateur.
+ * @param {Date} fromDate - La date de départ.
+ * @param {Date} toDate - La date d'arrivée.
+ * @returns {Number} Timestamp - Le temps de vocal.
+ */
+function getVoiceTimeFromTo(userData, fromDate, toDate = new Date()) {
+    const from = fromDate.getTime();
+    const to = toDate.getTime();
+
+    let total = 0;
+
+    for (const voice of [...userData.voices].reverse()) { // Parcours voices à l'envers.
+        const start = voice.date; // Début du vocal.
+        let end;
+
+        if(voice.duration !== null){
+            end = start + voice.duration; // Fin du vocal.
+        }
+        else {
+            end = Date.now();
+        }
+
+        // Pas d'intersection
+        if (end <= from) break;
+
+        if (start >= to) continue;
+
+        // Intersection
+        const overlapStart = start < from ? from : start;
+        const overlapEnd = end > to ? to : end;
+
+        total += overlapEnd - overlapStart;
+    }
+
+    return total;
+}
+
 module.exports = {
     initializeDatabase,
     createUserIfNotExists,
     updateUser,
-    getUser
+    getUser,
+    userMessageRank,
+    userVoiceRank,
+    getMessageCountFromTo,
+    getVoiceTimeFromTo
 }

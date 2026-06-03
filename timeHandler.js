@@ -22,38 +22,23 @@ function dateKey(date = new Date()) {
  */
 function intDate(dateKey) {return Number(dateKey.replaceAll("-", ""))};
 
+
 /**
- * Renvoie le nombre de messages envoyés de `fromDate` à `toDate`.
+ * Convertit une date en format DD/MM/YYYY.
  * 
- * @param {Object} userData - Les données de l'utilisateur.
- * @param {Date} fromDate - La date de départ.
- * @param {Date} toDate - La date d'arrivée.
- * @returns {bigint} Count - Le nombre de messages envoyés.
+ * @param {Date} date - La date à convertir en format DD/MM/YYYY.
+ * @returns {String} date - La date en DD/MM/YYYY.
  */
-function getMessageCountFromTo(userData, fromDate, toDate = new Date()) {
-    fromDate = dateKey(fromDate);
-    toDate = dateKey(toDate);
+function formatDate(date) {
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const y = date.getFullYear();
 
-    // Trier hourlyMessages du plus récent au plus acien.
-    const messages = userData.messages
-    
-    let count = 0n
-    for (const message of [...messages].reverse()) { // Parcourt hourlyMessages du plus récent au plus ancien.
-        if(intDate(message.date) - intDate(fromDate) < 0) { // Si la date est avant fromDate
-            break;
-        }
-
-        if(intDate(message.date) - intDate(toDate) > 0) { // Si la date est après toDate
-            continue;
-        }
-
-        count += 1n;
-    };
-
-    return count;
+    return `${d}/${m}/${y}`;
 }
 
 module.exports = {
     dateKey,
-    getMessageCountFromTo
+    intDate,
+    formatDate
 }
