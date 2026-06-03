@@ -1,5 +1,14 @@
+<<<<<<< HEAD
+# Bot crêpe PTB
+Le bot de test du [Serv Des Crêpes](https://discord.gg/5mzbtke9Jw).
+
+Sur cette branche il n'y a que les fichiers et le code concernant les fonctionnalités en cours de test ou pas encore implémentées dans le bot.
+Cela dans le but d'éviter les doublons lors des tests sur le serveur entre Robot de crêpe et la version de test.
+Il n'y aura donc pas de pull request et de merge habituel.
+=======
 # Bot crêpe
 Le bot du [Serv Des Crêpes](https://discord.gg/5mzbtke9Jw).
+>>>>>>> main
 
 ## Structure du .env
 ### TOKEN
@@ -25,3 +34,21 @@ L'identifiant du salon de renommage
 
 ### FORBIDDENRENAME
 L'identifiant du rôle de renommahe interdit.
+<<<<<<< HEAD
+
+### DB_HOST
+L'addresse du serveur de la base de donnée.
+
+### DB_USER
+L'utilisateur utilisé pour la base de donnée.
+
+### DB_PORT
+Le port utilisé par le serveur pour accéder à la base de donnée.
+
+### DB_PASSWORD
+Le mot de passe de l'utilisateur utilisé pour la base de donnée.
+
+### DB_DATABASE
+La base de donnée utilisée dans le serveur.
+=======
+>>>>>>> main

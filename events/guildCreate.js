@@ -6,8 +6,28 @@ const Client = new Discord.Client({
         Discord.GatewayIntentBits.GuildMembers
     ]
 });
-Client.login(process.env.TOKEN)
+Client.login(process.env.TOKEN);
+
 const commands = [
+    {
+        name: "stats",
+        description: "Regarder les statistiques.",
+        options: [
+            {
+                name: "utilisateur",
+                description: "Regarder les statistiques d'un utilisateur.",
+                type: Discord.ApplicationCommandOptionType.Subcommand,
+                options: [
+                    {
+                        name: "utilisateur",
+                        description: "L'utilisateur dont il faut regarder les statistiques.",
+                        type: Discord.ApplicationCommandOptionType.User
+                    }
+                ]
+            }
+        ]
+    },
+
     {
         name: "pseudos",
         description: "Vérifier le pseudo de tout les membres.",
@@ -112,13 +132,13 @@ const commands = [
 module.exports = {
     name: "guildCreate",
     once: false,
-    async execute(guild){
-        if(process.env.GUILDS != guild.id){
+    async execute(guild) {
+        if (process.env.GUILDS != guild.id) {
             guild.leave()
         }
         else {
             const rest = new Discord.REST({ version: "10" }).setToken(process.env.TOKEN);
-        (async () => {
+            (async () => {
                 try {
                     console.log("Registering slash commands...")
                     const guilds = [guild.id]

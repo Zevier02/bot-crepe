@@ -17,6 +17,9 @@ module.exports = {
     name: "interactionCreate",
     once: false,
     commands: new Commands(),
+    /**
+     * @param {Discord.Interaction} interaction 
+     */
     async execute(interaction){
         const command = this.commands.list.get(interaction.commandName)
         if(process.env["EPHEMERAL_" + interaction.commandName.toUpperCase()] == undefined){

@@ -1,5 +1,7 @@
 const Discord = require("discord.js");
 const fs = require("fs");
+const Stats = require("../statsHandler.js");
+
 const Client = new Discord.Client({
     intents: [
         Discord.GatewayIntentBits.Guilds,
@@ -15,7 +17,27 @@ function waitUntilReady(client) {
         client.once("ready", () => resolve());
     });
 }
+
 const commands = [
+    {
+        name: "stats",
+        description: "Regarder les statistiques.",
+        options: [
+            {
+                name: "utilisateur",
+                description: "Regarder les statistiques d'un utilisateur.",
+                type: Discord.ApplicationCommandOptionType.Subcommand,
+                options: [
+                    {
+                        name: "utilisateur",
+                        description: "L'utilisateur dont il faut regarder les statistiques.",
+                        type: Discord.ApplicationCommandOptionType.User
+                    }
+                ]
+            }
+        ]
+    },
+
     {
         name: "pseudos",
         description: "Vérifier le pseudo de tout les membres.",
@@ -111,7 +133,7 @@ const commands = [
                 type: Discord.ApplicationCommandOptionType.Integer,
                 required: false,
                 minValue: 1,
-    			maxValue: 25
+                maxValue: 25
             }
         ]
     }
@@ -141,10 +163,14 @@ module.exports = {
     once: true,
     async execute(){
         console.log("Bot ready.");
-        var i = 0
+
+        await Stats.initializeDatabase();
+        await waitUntilReady(Client);
+
+        let i = 0
         const guilds = Client.guilds.cache.map(g => g.id)
         while(guilds[i] != undefined){
-            var guildid = [guilds[i]]
+            let guildid = [guilds[i]]
             const rest = new Discord.REST({ version: "10" }).setToken(process.env.TOKEN);
             (async () => {
                 try {
@@ -169,6 +195,8 @@ module.exports = {
             setInterval(() => {
                 clearMessages(channel)
             }, 1000 * 60 * 60 * 24)
-        }, msUntilMidnight())
+        }, msUntilMidnight());
+
+        await Stats.checkAllVoices(Client);
     }
 }
