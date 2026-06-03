@@ -29,10 +29,14 @@ module.exports = {
                 duration: null
             }
 
+
+            // Users
             userData.voices.push(Voice);
 
             userFieldsToUpdate.voices = userData.voices;
 
+
+            // Global
             if(globalData.connectedUsers.indexOf(user.id) === -1){
                 globalData.connectedUsers.push(user.id);
                 globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
@@ -51,12 +55,34 @@ module.exports = {
             const lastVoice = userData.voices[userData.voices.length - 1];
             const duration = now - lastVoice.date;
 
+
+            // Global
+            globalData.totalVoice += duration;
+
+            globalFieldsToUpdate.totalVoice = globalData.totalVoice;
+
+            if(globalData.connectedUsers.indexOf(user.id) === -1){
+                globalData.connectedUsers.push(user.id);
+                globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
+            }
+
+
+            // Users
             lastVoice.duration = duration;
 
             userData.voiceTime += duration;
 
-            globalData.totalVoice += duration;
+            userData.voiceChannels[lastVoice.channel] =
+                (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
 
+            userData.voices.push(Voice);
+
+            userFieldsToUpdate.voices = userData.voices;
+            userFieldsToUpdate.voiceChannels = userData.voiceChannels;
+            userFieldsToUpdate.voiceTime = userData.voiceTime;
+
+
+            // Salons
             oldChannelData.totalVoice += duration;
 
             const channelVoice = {
@@ -68,22 +94,6 @@ module.exports = {
             oldChannelData.voices.push(channelVoice);
             oldChannelData.usersVoice[user.id] =
                 (oldChannelData.usersVoice[user.id] ?? 0) + duration;
-
-            globalFieldsToUpdate.totalVoice = globalData.totalVoice;
-
-            userData.voiceChannels[lastVoice.channel] =
-                (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
-
-            userData.voices.push(Voice);
-
-            userFieldsToUpdate.voices = userData.voices;
-            userFieldsToUpdate.voiceChannels = userData.voiceChannels;
-            userFieldsToUpdate.voiceTime = userData.voiceTime;
-
-            if(globalData.connectedUsers.indexOf(user.id) === -1){
-                globalData.connectedUsers.push(user.id);
-                globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
-            }
 
             await Stats.updateChannel(oldState.channel, {
                 totalvoice: oldChannelData.totalVoice,
@@ -101,6 +111,8 @@ module.exports = {
 
             userData.voiceTime += duration;
 
+
+            // Global
             const index = globalData.connectedUsers.indexOf(user.id);
 
             if(index !== -1){
@@ -110,6 +122,20 @@ module.exports = {
 
             globalData.totalVoice += duration;
 
+            globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
+            globalFieldsToUpdate.totalVoice = globalData.totalVoice;
+
+
+            // Users
+            userData.voiceChannels[lastVoice.channel] =
+                (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
+
+            userFieldsToUpdate.voices = userData.voices;
+            userFieldsToUpdate.voiceChannels = userData.voiceChannels;
+            userFieldsToUpdate.voiceTime = userData.voiceTime;
+
+
+            //Salon
             oldChannelData.totalVoice += duration;
 
             const channelVoice = {
@@ -121,16 +147,6 @@ module.exports = {
             oldChannelData.voices.push(channelVoice);
             oldChannelData.usersVoice[user.id] =
                 (oldChannelData.usersVoice[user.id] ?? 0) + duration;
-
-            globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
-            globalFieldsToUpdate.totalVoice = globalData.totalVoice;
-
-            userData.voiceChannels[lastVoice.channel] =
-                (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
-
-            userFieldsToUpdate.voices = userData.voices;
-            userFieldsToUpdate.voiceChannels = userData.voiceChannels;
-            userFieldsToUpdate.voiceTime = userData.voiceTime;
 
             await Stats.updateChannel(oldState.channel, {
                 totalvoice: oldChannelData.totalVoice,

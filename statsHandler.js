@@ -527,7 +527,7 @@ async function checkAllVoices(Client) {
 
     const globalFieldsToUpdate = {};
 
-    for (const userId of globalData.connectedUsers) {
+    for (const userId of globalData.connectedUsers) { // Vérifie pour toues les membres marqués comme connectés.
         const member = await guild.members.fetch(userId);
         if (!member) {
             console.error("Le membre n'existe pas.");
@@ -535,38 +535,44 @@ async function checkAllVoices(Client) {
         }
 
         if (member.voice.channel) continue;
-        const user = member.user;
-        await createUserIfNotExists(user);
-
-        const index = globalData.connectedUsers.indexOf(user.id);
-
-        if (index !== -1) {
-            globalFieldsToUpdate.connectedUsers = [...globalData.connectedUsers]
-            globalFieldsToUpdate.connectedUsers.splice(index, 1);
-        }
-
-        const userData = await getUser(user);
 
         const now = Date.now();
 
-        if (userData.voices.length > 0) {
-            const lastVoice = userData.voices[userData.voices.length - 1];
-            if (lastVoice.duration === null) {
-                const oldChannel = await guild.channels.fetch(lastVoice.channel);
+        const user = member.user;
+        await createUserIfNotExists(user);
+        const userData = await getUser(user);
 
+        const index = globalData.connectedUsers.indexOf(user.id);
+
+        if (index !== -1) { // Splice si il n'est plus connecté
+            globalFieldsToUpdate.connectedUsers = [...globalData.connectedUsers]
+            globalFieldsToUpdate.connectedUsers.splice(index, 1); 
+        }
+
+        if (userData.voices.length > 0) { // Si il a des vocs avant
+            const lastVoice = userData.voices[userData.voices.length - 1];
+            if (lastVoice.duration === null) { // Si sa dernière voc était encore en cours (pas de duration = pas finie).
+
+                const oldChannel = await guild.channels.fetch(lastVoice.channel);
                 await createChannelIfNotExists(oldChannel);
                 const oldChannelData = await getChannel(oldChannel); 
-                const duration = now - lastVoice.date;
 
+
+                const duration = now - lastVoice.date;
                 lastVoice.duration = duration;
 
+                // Users
                 userData.voiceChannels[lastVoice.channel] =
                     (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
 
                 userData.voiceTime += duration;
 
+
+                // Global
                 globalData.totalVoice += duration;
 
+
+                // Salon
                 oldChannelData.totalVoice += duration;
 
                 const channelVoice = {
@@ -594,41 +600,51 @@ async function checkAllVoices(Client) {
         }
     }
 
-    if (globalFieldsToUpdate.connectedUsers) {
+    if (globalFieldsToUpdate.connectedUsers) { // Rendre la copie de connectedUsers (splice) si il y en a eu.
         globalData.connectedUsers = [...globalFieldsToUpdate.connectedUsers];
     }
 
-    for (const channel of channels.values()) {
+    for (const channel of channels.values()) { // Vérifie les connections dans tous les salons vocaux
         if (!channel.isVoiceBased()) continue;
+
         await createChannelIfNotExists(channel);
         const oldChannelData = await getChannel(channel); 
+
         for (const member of channel.members.values()) {
             const userFieldsToUpdate = {};
+            const now = Date.now();
+
 
             const user = member.user;
             await createUserIfNotExists(user);
-
             const userData = await getUser(user);
 
-            const now = Date.now();
 
-            if (userData.voices.length > 0) {
+            if (userData.voices.length > 0) { // Si il a des anciennes voc
                 const lastVoice = userData.voices[userData.voices.length - 1];
 
-                if (lastVoice.duration === null) {
+                if (lastVoice.duration === null) { // Si sa dernière voc était encore en cours
                     const duration = now - lastVoice.date;
-
                     lastVoice.duration = duration;
 
+
+                    // Users
                     userData.voiceChannels[lastVoice.channel] =
                         (userData.voiceChannels[lastVoice.channel] ?? 0) + duration;
 
                     userData.voiceTime += duration;
 
+                    userFieldsToUpdate.voiceChannels = userData.voiceChannels;
+                    userFieldsToUpdate.voiceTime = userData.voiceTime;
+
+
+                    // Global
                     globalData.totalVoice += duration;
 
                     globalFieldsToUpdate.totalVoice = globalData.totalVoice;
 
+
+                    // Salon
                     oldChannelData.totalVoice += duration;
 
                     const channelVoice = {
@@ -646,9 +662,6 @@ async function checkAllVoices(Client) {
                         voices: oldChannelData.voices,
                         usersVoice: oldChannelData.usersVoice
                     });
-
-                    userFieldsToUpdate.voiceChannels = userData.voiceChannels;
-                    userFieldsToUpdate.voiceTime = userData.voiceTime;
                 }
             }
 
@@ -659,13 +672,14 @@ async function checkAllVoices(Client) {
             }
 
             if (globalData.connectedUsers.indexOf(user.id) === -1) {
-                globalData.connectedUsers.push(user.id);
+                globalData.connectedUsers.push(user.id); // Push si il n'était pas dans la liste des connectés.
                 globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
             }
 
-            userData.voices.push(Voice);
 
+            userData.voices.push(Voice);
             userFieldsToUpdate.voices = userData.voices;
+            
 
             await updateUser(user, userFieldsToUpdate);
             await updateGlobal(globalFieldsToUpdate);
