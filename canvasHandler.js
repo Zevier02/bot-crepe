@@ -1,6 +1,7 @@
 const { registerFont, createCanvas, loadImage } = require("canvas");
 const Stats = require("./statsHandler");
 const Time = require("./timeHandler");
+const fontkit = require("fontkit");
 const Discord = require("discord.js");
 const Client = new Discord.Client({
     intents: [
@@ -15,6 +16,30 @@ registerFont("./NotoSans.ttf", {
     family: "NotoSans"
 });
 
+const font = fontkit.openSync("./NotoSans.ttf");
+
+function normalizeText(text) {
+    var output = "";
+    for (const char of text) {
+        const glyph = font.glyphForCodePoint(char.codePointAt(0));
+
+        // glyph id 0 = caractère absent
+        if (glyph.id === 0) {
+            const normalizedChar = char.normalize("NFKD")
+            const normalizedGlyph = font.glyphForCodePoint(normalizedChar.codePointAt(0));
+            
+            if(normalizedGlyph.id !== 0) {
+                output = output + normalizedChar
+            }
+        }
+        else {
+            output = output + char
+        }
+    }
+
+    return output;
+}
+
 
 function waitUntilReady(client) {
     return new Promise((resolve) => {
@@ -24,6 +49,7 @@ function waitUntilReady(client) {
 }
 
 function canvasText(ctx, text, fontSize, position, maxWidth){
+    text = normalizeText(text);
     do {
         ctx.font = `${fontSize}px NotoSans`;
         fontSize--;
