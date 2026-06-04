@@ -206,30 +206,31 @@ async function createUserStats(user, userData) {
     canvasText(ctx, `#${messageRank.toString()}`, 50, [305, 230], 180);
     canvasText(ctx, `#${voiceRank.toString()}`, 50, [305, 325], 180);
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    const yesterdayMessages = Stats.getMessageCountFromTo(userData, yesterday);
+    const todayMessages = Stats.getMessageCountFromTo(userData, today);
 
     const lastWeek = new Date();
-    lastWeek.setDate(lastWeek.getDate() - 7);
+    lastWeek.setHours(0, 0, 0, 0);
+    lastWeek.setDate(lastWeek.getDate() - 6);
 
     const lastWeekMessages = Stats.getMessageCountFromTo(userData, lastWeek);
 
     // Messages
-    canvasText(ctx, `${yesterdayMessages.toString()} messages`, 30, [680, 215], 270);
+    canvasText(ctx, `${todayMessages.toString()} messages`, 30, [680, 215], 270);
     canvasText(ctx, `${lastWeekMessages.toString()} messages`, 30, [680, 275], 270);
     canvasText(ctx, `${userData.messageCount.toString()} messages`, 30, [680, 335], 270);
 
 
-    const yesterdayVoiceTime = Math.floor(Stats.getVoiceTimeFromTo(userData, yesterday) / 3600000); // Convertir ms en heure
+    const todayVoiceTime = Math.floor(Stats.getVoiceTimeFromTo(userData, today) / 3600000); // Convertir ms en heure
 
     const lastWeekVoiceTime = Math.floor(Stats.getVoiceTimeFromTo(userData, lastWeek) / 3600000);
 
     const allVoiceTime = Math.floor(userData.voiceTime / 3600000);
 
     // Vocal
-    canvasText(ctx, `${yesterdayVoiceTime.toString()} heures`, 30, [1100, 215], 270);
+    canvasText(ctx, `${todayVoiceTime.toString()} heures`, 30, [1100, 215], 270);
     canvasText(ctx, `${lastWeekVoiceTime.toString()} heures`, 30, [1100, 275], 270);
     canvasText(ctx, `${allVoiceTime.toString()} heures`, 30, [1100, 335], 270);
 
@@ -285,25 +286,19 @@ async function createUserStats(user, userData) {
     let messageData = [];
     let voiceData = [];
 
-    let toDate = new Date();
-    let fromDate = new Date();
-    fromDate.setDate(fromDate.getDate() - 1);
-
     for (let i = 0; i < 14; i++){
-        const toDate = new Date();
-        toDate.setDate(toDate.getDate() - i);
-
         const fromDate = new Date();
-        fromDate.setDate(fromDate.getDate() - (i + 1));
+        fromDate.setHours(0, 0, 0, 0);
+        fromDate.setDate(fromDate.getDate() - i);
+
+        const toDate = new Date(fromDate);
+        toDate.setDate(toDate.getDate() + 1);
 
         const messageCount = Stats.getMessageCountFromTo(userData, fromDate, toDate);
         const voiceTime = Stats.getVoiceTimeFromTo(userData, fromDate, toDate);
 
         messageData.push(messageCount);
         voiceData.push(Math.floor(voiceTime / 3600000));
-
-        toDate.setDate(toDate.getDate() - 1);
-        fromDate.setDate(fromDate.getDate() - 1);
     }
 
     messageData.reverse();

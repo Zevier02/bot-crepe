@@ -234,6 +234,8 @@ async function checkAllVoices(Client) {
             await updateGlobal(globalFieldsToUpdate);
         };
     }
+
+    console.log("All checks finished.");
 }
 
 module.exports = {
