@@ -1,8 +1,9 @@
-const { registerFont, createCanvas, loadImage } = require("canvas");
-const Stats = require("./statsHandler");
-const Time = require("./timeHandler");
-const fontkit = require("fontkit");
+const { createCanvas, loadImage } = require("canvas");
+const { canvasText, drawLineChart } = require("./graph");
+const Stats = require("../statsHandler");
+const Time = require("../timeHandler");
 const Discord = require("discord.js");
+const path = require("path");
 const Client = new Discord.Client({
     intents: [
         Discord.GatewayIntentBits.Guilds,
@@ -12,35 +13,6 @@ const Client = new Discord.Client({
 
 Client.login(process.env.TOKEN);
 
-registerFont("./NotoSans.ttf", {
-    family: "NotoSans"
-});
-
-const font = fontkit.openSync("./NotoSans.ttf");
-
-function normalizeText(text) {
-    var output = "";
-    for (const char of text) {
-        const glyph = font.glyphForCodePoint(char.codePointAt(0));
-
-        // glyph id 0 = caractère absent
-        if (glyph.id === 0) {
-            const normalizedChar = char.normalize("NFKD")
-            const normalizedGlyph = font.glyphForCodePoint(normalizedChar.codePointAt(0));
-            
-            if(normalizedGlyph.id !== 0) {
-                output = output + normalizedChar
-            }
-        }
-        else {
-            output = output + char
-        }
-    }
-
-    return output;
-}
-
-
 function waitUntilReady(client) {
     return new Promise((resolve) => {
         if (client.isReady()) return resolve();
@@ -48,138 +20,10 @@ function waitUntilReady(client) {
     });
 }
 
-function canvasText(ctx, text, fontSize, position, maxWidth){
-    text = normalizeText(text);
-    do {
-        ctx.font = `${fontSize}px NotoSans`;
-        fontSize--;
-    } while (ctx.measureText(text).width > maxWidth && fontSize > 10);
-
-    ctx.fillText(text, position[0], position[1]);
-}
-
-function drawLineChart(ctx, messageData, voiceData, x, y, width, height) {
-    if (messageData.length < 2 || voiceData < 2) return;
-    if(messageData.length !== voiceData.length)
-        return console.error("messageData et voiceData doivent être de même longueur.");
-
-    const dataLength = messageData.length;
-
-    const maxMessage = Math.max(...messageData);
-    const minMessage = 0;
-    const rangeMessage = Math.max(maxMessage - minMessage, 1);
-
-    const maxVoice = Math.max(...voiceData);
-    const minVoice = 0;
-    const rangeVoice = Math.max(maxVoice - minVoice, 1);
-
-    const lastfillStyle = ctx.fillStyle;
-
-    if(maxMessage !== maxVoice){
-        if(maxMessage !== minMessage){
-            ctx.fillStyle = "#3CB44BFF";
-            canvasText(ctx, maxMessage.toString(), 20, [x,y-12.5], 25);
-        }
-        
-        if(maxVoice !== minVoice){
-            ctx.fillStyle = "#D45087FF";
-            canvasText(ctx, maxVoice.toString(), 20, [x,y+12.5], 25);
-        }
-    }
-    else if(maxMessage !== 0){
-        ctx.fillStyle = "#ffffff";
-        canvasText(ctx, maxMessage.toString(), 20, [x, y], 25);
-    }
-
-    ctx.fillStyle = "#ffffff";
-    canvasText(ctx, minMessage.toString(), 20, [x, y+height], 25);
-    canvasText(ctx, `${dataLength}j`, 20, [x+width+25, y+height], 25);
-    
-
-    const lastStrokeStyle = ctx.strokeStyle;
-    ctx.strokeStyle = "#ffffff";
-
-    x+=5
-    width-=5
-
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x, y + height);
-    ctx.lineTo(x + width, y + height);
-    ctx.stroke();
-
-    // Messages
-    ctx.fillStyle = "#3CB44BFF";
-    ctx.strokeStyle = "#3CB44BFF";
-
-    const stepXMessage = width / (messageData.length - 1);
-
-    // Courbe
-    ctx.beginPath();
-
-    messageData.forEach((value, i) => {
-        const px = x + i * stepXMessage;
-        const py = y + height - ((value - minMessage) / rangeMessage) * height;
-
-        if (i === 0) {
-            ctx.moveTo(px, py);
-        } else {
-            ctx.lineTo(px, py);
-        }
-    });
-
-    ctx.stroke();
-
-    // Points
-    messageData.forEach((value, i) => {
-        const px = x + i * stepXMessage;
-        const py = y + height - ((value - minMessage) / rangeMessage) * height;
-
-        ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    const stepXVoice = width / (voiceData.length - 1);
-
-    // Vocal
-
-    ctx.fillStyle = "#D45087FF";
-    ctx.strokeStyle = "#D45087FF";
-    // Courbe
-    ctx.beginPath();
-
-    voiceData.forEach((value, i) => {
-        const px = x + i * stepXVoice;
-        const py = y + height - ((value - minVoice) / rangeVoice) * height;
-
-        if (i === 0) {
-            ctx.moveTo(px, py);
-        } else {
-            ctx.lineTo(px, py);
-        }
-    });
-
-    ctx.stroke();
-
-    // Points
-    voiceData.forEach((value, i) => {
-        const px = x + i * stepXVoice;
-        const py = y + height - ((value - minVoice) / rangeVoice) * height;
-
-        ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    ctx.fillStyle = lastfillStyle;
-    ctx.strokeStyle = lastStrokeStyle;
-}
-
 /**
  * Créé le canvas des stats de l'utilisateur.
  * 
- * @param {Discord.User} user - Utilisateur dont le classement est à récupérer.
+ * @param {Discord.User} user - Utilisateur.
  * @param {Object} userData - Les données de l'utilisateur (les récupère automatiquement si non défini).
  * @returns {Buffer} buffer - Le buffer du canvas. 
  */
@@ -191,7 +35,7 @@ async function createUserStats(user, userData) {
     const canvas = createCanvas(1280, 708);
     const ctx = canvas.getContext("2d");
 
-    var background = await loadImage(process.env.USER_STATS_TEMPLATE);
+    let background = await loadImage(path.join(__dirname, "..", "statsTemplates", "userStatsTemplate.png"));
     ctx.drawImage(background, 0, 0, 1280, 708);
 
 

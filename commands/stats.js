@@ -4,9 +4,9 @@ const path = require('path');
 const subcommands = [];
 
 // Charger dynamiquement tous les fichiers de sous-commandes
-const files = fs.readdirSync(__dirname + "\/stats");
+const files = fs.readdirSync(path.join(__dirname + "stats"));
 for (const file of files) {
-    const sub = require(path.join(__dirname + "\/stats", file));
+    const sub = require(path.join(__dirname, "stats", file));
     if (sub.data && sub.execute) subcommands.push(sub);
 }
 

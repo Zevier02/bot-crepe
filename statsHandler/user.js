@@ -1,4 +1,4 @@
-const { pool, getCaller } = require("../db");
+const { pool, getCaller } = require("./db");
 
 function parseUserData(userData) {
     userData.messageChannels = JSON.parse(userData.messageChannels);

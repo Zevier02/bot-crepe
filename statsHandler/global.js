@@ -1,4 +1,4 @@
-const { pool, getCaller } = require("../db");
+const { pool, getCaller } = require("./db");
 
 function parseGlobalData(globalData) {
     globalData.connectedUsers = JSON.parse(globalData.connectedUsers);

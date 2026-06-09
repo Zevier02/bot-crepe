@@ -1,9 +1,10 @@
 const fs = require("fs");
 const Discord = require("discord.js");
+const path = require("path");
 class Commands {
     constructor(){
         this.list = new Discord.Collection();
-        const commandFiles = fs.readdirSync(process.env.COMMANDS).filter(file => file.endsWith(".js"));
+        const commandFiles = fs.readdirSync(path.join(__dirname, "..", "commands")).filter(file => file.endsWith(".js"));
 
         for(const file of commandFiles){
             const command = require("../commands/" + file);

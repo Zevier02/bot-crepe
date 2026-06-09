@@ -1,6 +1,6 @@
 const { pool, getCaller } = require("./db");
-const { getGlobal, updateGlobal } = require("./statsHandler/global");
-const { createChannelIfNotExists, updateChannel, getChannel} = require("./statsHandler/channel");
+const { getGlobal, updateGlobal } = require("./global");
+const { createChannelIfNotExists, updateChannel, getChannel} = require("./channel");
 const {    
     createUserIfNotExists,
     updateUser,
@@ -8,7 +8,7 @@ const {
     userMessageRank,
     userVoiceRank,
     getMessageCountFromTo,
-    getVoiceTimeFromTo } = require("./statsHandler/user");
+    getVoiceTimeFromTo } = require("./user");
 
 /**
  * Initialise la base de données (créé les tables si elles n'existent pas).

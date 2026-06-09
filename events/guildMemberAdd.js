@@ -2,6 +2,7 @@ const fs = require("fs");
 const fontkit = require("fontkit")
 const Canvas = require("canvas");
 const Discord = require("discord.js");
+const path = require("path");
 
 const Client = new Discord.Client({
     intents: [
@@ -61,7 +62,7 @@ module.exports = {
 
         const ctx = canvas.getContext("2d");
 
-        var background = await Canvas.loadImage(process.env.BACKGROUND);
+        let background = await Canvas.loadImage(path.join(__dirname, "..", "bg.png"));
         ctx.drawImage(background, 0, 0, 1000, 300);
 
         ctx.font = "50px RubikVar";

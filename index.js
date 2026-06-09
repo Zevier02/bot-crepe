@@ -15,7 +15,7 @@ const Client = new Discord.Client({
     ]
 });
 
-const eventFiles = fs.readdirSync(process.env.EVENTS).filter(file => file.endsWith(".js"));
+const eventFiles = fs.readdirSync(path.join(__dirname, "events")).filter(file => file.endsWith(".js"));
 
 //Event handler
 for (const file of eventFiles){
