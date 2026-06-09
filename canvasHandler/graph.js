@@ -1,3 +1,5 @@
+const { canvasText } = require("./text");
+
 function drawLineChart(ctx, messageData, voiceData, x, y, width, height) {
     if (messageData.length < 2 || voiceData < 2) return;
     if(messageData.length !== voiceData.length)

@@ -1,5 +1,6 @@
 const { createCanvas, loadImage } = require("canvas");
-const { canvasText, drawLineChart } = require("./graph");
+const { drawLineChart } = require("./graph");
+const { canvasText } = require("./text");
 const Stats = require("../statsHandler");
 const Time = require("../timeHandler");
 const Discord = require("discord.js");

@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const Stats = require("../statsHandler.js");
+const Stats = require("../statsHandler");
 
 const Client = new Discord.Client({
     intents: [
