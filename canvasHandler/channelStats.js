@@ -248,7 +248,12 @@ async function createChannelStats(channel, channelData) {
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.clip();
 
-    var avatar = await loadImage(guild.iconURL({extension: 'png', size: 1024}));
+    let avatar;
+    try {
+        avatar = await loadImage(guild.iconURL({forceStatic: true, extension: 'png', size: 1024}));
+    } catch {
+        avatar = await loadImage(path.join(__dirname, "..", "statsTemplates", "baseavatar.png"));
+    }
 
     ctx.drawImage(
         avatar,
