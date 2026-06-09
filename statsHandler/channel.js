@@ -132,8 +132,203 @@ async function getChannel(channel) {
     return channelData;
 }
 
+/**
+ * Donne le classement du salon selon son temps de vocal (en partant de 1).
+ * 
+ * @param {import('discord.js').Channel} channel - Salon dont le classement est à récupérer.
+ * @returns {Number | null} rank - Le classement du salon ou `null` en cas d'erreur. 
+ */
+async function channelVoiceRank(channel) {
+    const id = channel.id;
+    try {
+        if(!channel.isVoiceBased()){
+            console.error(`${getCaller()} Impossible de récupérer le classement vocal d'un salon textuel`);
+            return null;
+        }
+
+        const [[result]] = await pool.execute(`
+            SELECT COUNT(*) + 1 AS position
+            FROM channels
+            WHERE totalVoice > (
+                SELECT totalVoice FROM channels WHERE id = ?
+            )
+        `, [id]);
+
+        return result.position;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le classement vocal du salon :\n${error}`);
+        return null;
+    }
+}
+
+/**
+ * Donne le classement du salon selon son nombre de messages (en partant de 1).
+ * 
+ * @param {import('discord.js').Channel} channel - Salon dont le classement est à récupérer.
+ * @returns {Number | null} rank - Le classement du salon ou `null` en cas d'erreur. 
+ */
+async function channelMessageRank(channel) {
+    const id = channel.id;
+    try {
+        const [[result]] = await pool.execute(`
+            SELECT COUNT(*) + 1 AS position
+            FROM channels
+            WHERE totalMessage > (
+                SELECT totalMessage FROM channels WHERE id = ?
+            )
+        `, [id]);
+
+        return result.position;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le classement textuel du salon :\n${error}`);
+        return null;
+    }
+}
+
+/**
+ * Renvoie le nombre de messages envoyés de `fromDate` à `toDate`.
+ * 
+ * @param {Object} channelData - Les données du salon.
+ * @param {Date} fromDate - La date de départ.
+ * @param {Date} toDate - La date d'arrivée.
+ * @returns {Number} Count - Le nombre de messages envoyés.
+ */
+function getChannelMessageCountFromTo(channelData, fromDate, toDate = new Date()) {
+    fromDate = fromDate.getTime();
+    toDate = toDate.getTime();
+
+    const messages = channelData.messages;
+
+    let count = 0
+    for (const message of [...messages].reverse()) { // Parcourt messages du plus récent au plus ancien.
+        if (message.date < fromDate) { // Si la date est avant fromDate
+            break;
+        }
+
+        if (message.date > toDate) { // Si la date est après toDate
+            continue;
+        }
+
+        count += 1;
+    };
+
+    return count;
+}
+
+/**
+ * Renvoie le temps de vocal de `fromDate` à `toDate` en ms (ne compte pas les appels en cours).
+ * 
+ * @param {Object} channelData - Les données du salon.
+ * @param {Date} fromDate - La date de départ.
+ * @param {Date} toDate - La date d'arrivée.
+ * @returns {Number} Timestamp - Le temps de vocal.
+ */
+function getChannelVoiceTimeFromTo(channelData, fromDate, toDate = new Date()) {
+    if(channelData.textBased){
+        throw new Error(`${getCaller()} Impossible de récupérer le temps de vocal d'un salon textuel.`);
+    }
+
+    const from = fromDate.getTime();
+    const to = toDate.getTime();
+
+    let total = 0;
+
+    for (const voice of [...channelData.voices].reverse()) { // Parcours voices à l'envers.
+        const start = voice.date; // Début du vocal.
+        let end = start + voice.duration; // Fin du vocal.
+
+        // Pas d'intersection
+        if (end <= from) break;
+
+        if (start >= to) continue;
+
+        // Intersection
+        const overlapStart = start < from ? from : start;
+        const overlapEnd = end > to ? to : end;
+
+        total += overlapEnd - overlapStart;
+    }
+
+    return total;
+}
+
+/**
+ * Renvoie le nombre d'utilisateurs ayant envoyé des messages dans le salon de `fromDate` à `toDate`.
+ * 
+ * @param {Object} channelData - Les données du salon.
+ * @param {Date} fromDate - La date de départ.
+ * @param {Date} toDate - La date d'arrivée.
+ * @returns {Number} Count - Le nombre de contributeurs.
+ */
+function getChannelMessageContributorsFromTo(channelData, fromDate, toDate = new Date()) {
+    fromDate = fromDate.getTime();
+    toDate = toDate.getTime();
+
+    const messages = channelData.messages;
+
+    let count = 0;
+    const contributors = {};
+
+    for (const message of [...messages].reverse()) { // Parcourt messages du plus récent au plus ancien.
+        if (message.date < fromDate) { // Si la date est avant fromDate
+            break;
+        }
+
+        if (message.date > toDate) { // Si la date est après toDate
+            continue;
+        }
+
+        if(!contributors[message.user]){
+            contributors[message.user] = true;
+            count += 1;
+        }
+    };
+
+    return count;
+}
+
+/**
+ * Renvoie le nombre d'utilisateurs ayant participé à un vocal de `fromDate` à `toDate` (ne compte pas les appels en cours).
+ * 
+ * @param {Object} channelData - Les données du salon.
+ * @param {Date} fromDate - La date de départ.
+ * @param {Date} toDate - La date d'arrivée.
+ * @returns {Number} Count - Le nombre de contributeurs.
+ */
+function getChannelVoiceContributorsFromTo(channelData, fromDate, toDate = new Date()) {
+    const from = fromDate.getTime();
+    const to = toDate.getTime();
+
+    let count = 0;
+    const contributors = {};
+
+    for (const voice of [...channelData.voices].reverse()) { // Parcours voices à l'envers.
+        const start = voice.date; // Début du vocal.
+        let end = start + voice.duration; // Fin du vocal.
+
+        // Pas d'intersection
+        if (end <= from) break;
+
+        if (start >= to) continue;
+
+        // Intersection
+        if(!contributors[voice.user]){
+            contributors[voice.user] = true;
+            count += 1;
+        }
+    }
+
+    return count;
+}
+
 module.exports = {
     createChannelIfNotExists,
     updateChannel,
-    getChannel
+    getChannel,
+    channelVoiceRank,
+    channelMessageRank,
+    getChannelMessageCountFromTo,
+    getChannelVoiceTimeFromTo,
+    getChannelMessageContributorsFromTo,
+    getChannelVoiceContributorsFromTo
 }

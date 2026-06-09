@@ -1,14 +1,24 @@
 const { pool, getCaller } = require("./db");
 const { getGlobal, updateGlobal } = require("./global");
-const { createChannelIfNotExists, updateChannel, getChannel} = require("./channel");
+const {
+    createChannelIfNotExists,
+    updateChannel,
+    getChannel,
+    channelVoiceRank,
+    channelMessageRank,
+    getChannelMessageCountFromTo,
+    getChannelVoiceTimeFromTo,
+    getChannelMessageContributorsFromTo,
+    getChannelVoiceContributorsFromTo } = require("./channel");
+
 const {    
     createUserIfNotExists,
     updateUser,
     getUser,
     userMessageRank,
     userVoiceRank,
-    getMessageCountFromTo,
-    getVoiceTimeFromTo } = require("./user");
+    getUserMessageCountFromTo,
+    getUserVoiceTimeFromTo } = require("./user");
 
 /**
  * Initialise la base de données (créé les tables si elles n'existent pas).
@@ -93,10 +103,9 @@ async function checkAllVoices(Client) {
 
         const index = globalData.connectedUsers.indexOf(user.id);
 
-        if (index !== -1) { // Splice si il n'est plus connecté
-            globalFieldsToUpdate.connectedUsers = [...globalData.connectedUsers]
-            globalFieldsToUpdate.connectedUsers.splice(index, 1); 
-        }
+        // On le retire si il n'est plus connecté
+        globalData.connectedUsers = globalData.connectedUsers.filter(id => id !== user.id);
+        globalFieldsToUpdate.connectedUsers = globalData.connectedUsers;
 
         if (userData.voices.length > 0) { // Si il a des vocs avant
             const lastVoice = userData.voices[userData.voices.length - 1];
@@ -147,10 +156,6 @@ async function checkAllVoices(Client) {
                 });
             }
         }
-    }
-
-    if (globalFieldsToUpdate.connectedUsers) { // Rendre la copie de connectedUsers (splice) si il y en a eu.
-        globalData.connectedUsers = [...globalFieldsToUpdate.connectedUsers];
     }
 
     for (const channel of channels.values()) { // Vérifie les connections dans tous les salons vocaux
@@ -247,12 +252,18 @@ module.exports = {
     getUser,
     userMessageRank,
     userVoiceRank,
-    getMessageCountFromTo,
-    getVoiceTimeFromTo,
+    getUserMessageCountFromTo,
+    getUserVoiceTimeFromTo,
     getGlobal,
     updateGlobal,
     createChannelIfNotExists,
     updateChannel,
     getChannel,
-    checkAllVoices
+    checkAllVoices,
+    channelMessageRank,
+    channelVoiceRank,
+    getChannelMessageCountFromTo,
+    getChannelVoiceTimeFromTo,
+    getChannelMessageContributorsFromTo,
+    getChannelVoiceContributorsFromTo
 }

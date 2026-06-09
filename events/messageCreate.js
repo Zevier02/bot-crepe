@@ -169,7 +169,7 @@ module.exports = {
         }
 
         const ChannelMessage = {
-            user: message.member.user,
+            user: message.author.id,
             date: currentTime
         }
 

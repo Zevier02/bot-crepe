@@ -179,7 +179,7 @@ async function userVoiceRank(user) {
  * @param {Date} toDate - La date d'arrivée.
  * @returns {Number} Count - Le nombre de messages envoyés.
  */
-function getMessageCountFromTo(userData, fromDate, toDate = new Date()) {
+function getUserMessageCountFromTo(userData, fromDate, toDate = new Date()) {
     fromDate = fromDate.getTime();
     toDate = toDate.getTime();
 
@@ -209,7 +209,7 @@ function getMessageCountFromTo(userData, fromDate, toDate = new Date()) {
  * @param {Date} toDate - La date d'arrivée.
  * @returns {Number} Timestamp - Le temps de vocal.
  */
-function getVoiceTimeFromTo(userData, fromDate, toDate = new Date()) {
+function getUserVoiceTimeFromTo(userData, fromDate, toDate = new Date()) {
     const from = fromDate.getTime();
     const to = toDate.getTime();
 
@@ -247,6 +247,6 @@ module.exports = {
     getUser,
     userMessageRank,
     userVoiceRank,
-    getMessageCountFromTo,
-    getVoiceTimeFromTo
+    getUserMessageCountFromTo,
+    getUserVoiceTimeFromTo
 }
