@@ -124,6 +124,7 @@ async function getTopVoiceChannel() {
         const [rows] = await pool.execute(`
             SELECT id, totalVoice
             FROM channels
+            WHERE boost > 0
             ORDER BY totalVoice DESC
             LIMIT 1
         `);
@@ -148,6 +149,7 @@ async function getTopMessageChannel() {
         const [rows] = await pool.execute(`
             SELECT id, totalMessage
             FROM channels
+            WHERE boost > 0
             ORDER BY totalMessage DESC
             LIMIT 1
         `);

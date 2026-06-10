@@ -151,7 +151,7 @@ async function channelVoiceRank(channel) {
             FROM channels
             WHERE totalVoice > (
                 SELECT totalVoice FROM channels WHERE id = ?
-            )
+            ) AND boost > 0
         `, [id]);
 
         return result.position;
@@ -175,7 +175,7 @@ async function channelMessageRank(channel) {
             FROM channels
             WHERE totalMessage > (
                 SELECT totalMessage FROM channels WHERE id = ?
-            )
+            ) AND boost > 0
         `, [id]);
 
         return result.position;

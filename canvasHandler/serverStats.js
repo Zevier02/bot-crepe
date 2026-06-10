@@ -55,9 +55,11 @@ async function createServerStats() {
 
     let totalTodayMessages = 0;
     let totalLastWeekMessages = 0;
+    let totalMessages = globalData.totalMessage;
 
     let totalTodayVoiceTime = 0;
     let totalLastWeekVoiceTime = 0;
+    let totalVoiceTime = globalData.totalVoice;
 
     let totalTodayContributors = new Set();
     let totalLastWeekContributors = new Set();
@@ -67,6 +69,15 @@ async function createServerStats() {
     for (const channel of channels.values()) {
         const channelData = await Stats.getChannel(channel);
         if(!channelData) continue;
+
+        if(channelData.boost === 0){
+            totalMessages -= channelData.totalMessage;
+
+            if(!channelData.textBased){
+                totalVoiceTime -= channelData.totalVoice;
+            }
+            continue;
+        }
 
         totalTodayMessages += Stats.getChannelMessageCountFromTo(channelData, today);
         totalLastWeekMessages += Stats.getChannelMessageCountFromTo(channelData, lastWeek);
@@ -104,12 +115,12 @@ async function createServerStats() {
     // Messages
     canvasText(ctx, `${totalTodayMessages.toString()} messages`, 30, [250, 205], 270);
     canvasText(ctx, `${totalLastWeekMessages.toString()} messages`, 30, [250, 260], 270);
-    canvasText(ctx, `${globalData.totalMessage.toString()} messages`, 30, [250, 315], 270);
+    canvasText(ctx, `${totalMessages.toString()} messages`, 30, [250, 315], 270);
 
     // Vocal
     const todayVoiceTime = Math.floor(totalTodayVoiceTime / 3600000);
     const lastWeekVoiceTime = Math.floor(totalLastWeekVoiceTime / 3600000);
-    const allVoiceTime = Math.floor(globalData.totalVoice / 3600000);
+    const allVoiceTime = Math.floor(totalVoiceTime / 3600000);
 
     canvasText(ctx, `${todayVoiceTime.toString()} heures`, 30, [680, 205], 270);
     canvasText(ctx, `${lastWeekVoiceTime.toString()} heures`, 30, [680, 260], 270);
@@ -198,6 +209,7 @@ async function createServerStats() {
         for (const channel of channels.values()) {
             const channelData = await Stats.getChannel(channel);
             if(!channelData) continue;
+            if(channelData.boost === 0) continue;
 
             messageCount += Stats.getChannelMessageCountFromTo(channelData, fromDate, toDate);
 

@@ -51,41 +51,104 @@ async function createUserStats(user, userData) {
     canvasText(ctx, `#${messageRank.toString()}`, 50, [305, 230], 180);
     canvasText(ctx, `#${voiceRank.toString()}`, 50, [305, 325], 180);
 
+    // Messages
+    await waitUntilReady(Client);
+
+    const guild = await Client.guilds.fetch(process.env.GUILDS);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const todayMessages = Stats.getUserMessageCountFromTo(userData, today);
+    const todayMessages = await Stats.getUserMessageCountFromTo(userData, today);
 
     const lastWeek = new Date();
     lastWeek.setHours(0, 0, 0, 0);
     lastWeek.setDate(lastWeek.getDate() - 6);
 
-    const lastWeekMessages = Stats.getUserMessageCountFromTo(userData, lastWeek);
+    const lastWeekMessages = await Stats.getUserMessageCountFromTo(userData, lastWeek);
+
+    let allMessages = userData.messageCount;
+
+    for (const channelId of Object.keys(userData.messageChannels)) {
+        const channel = await guild.channels.fetch(channelId);
+        if(!channel){
+            allMessages -= userData.messageChannels[channelId];
+            continue;
+        }
+
+        const channelData = await Stats.getChannel(channel);
+
+        if(channelData.boost === 0){
+            allMessages -= userData.messageChannels[channelId];
+        }
+    }
 
     // Messages
     canvasText(ctx, `${todayMessages.toString()} messages`, 30, [680, 215], 270);
     canvasText(ctx, `${lastWeekMessages.toString()} messages`, 30, [680, 275], 270);
-    canvasText(ctx, `${userData.messageCount.toString()} messages`, 30, [680, 335], 270);
+    canvasText(ctx, `${allMessages.toString()} messages`, 30, [680, 335], 270);
 
 
-    const todayVoiceTime = Math.floor(Stats.getUserVoiceTimeFromTo(userData, today) / 3600000); // Convertir ms en heure
+    const todayVoiceTime = Math.floor(await Stats.getUserVoiceTimeFromTo(userData, today) / 3600000); // Convertir ms en heure
 
-    const lastWeekVoiceTime = Math.floor(Stats.getUserVoiceTimeFromTo(userData, lastWeek) / 3600000);
+    const lastWeekVoiceTime = Math.floor(await Stats.getUserVoiceTimeFromTo(userData, lastWeek) / 3600000);
 
-    const allVoiceTime = Math.floor(userData.voiceTime / 3600000);
+    let allVoiceTime = userData.voiceTime;
+
+    for (const channelId of Object.keys(userData.voiceChannels)) {
+        const channel = await guild.channels.fetch(channelId);
+        if(!channel){
+            allVoiceTime -= userData.voiceChannels[channelId];
+            continue;
+        }
+
+        const channelData = await Stats.getChannel(channel);
+
+        if(channelData.boost === 0){
+            allVoiceTime -= userData.voiceChannels[channelId];
+        }
+    }
+
+    allVoiceTime = Math.floor(allVoiceTime / 3600000);
 
     // Vocal
     canvasText(ctx, `${todayVoiceTime.toString()} heures`, 30, [1100, 215], 270);
     canvasText(ctx, `${lastWeekVoiceTime.toString()} heures`, 30, [1100, 275], 270);
     canvasText(ctx, `${allVoiceTime.toString()} heures`, 30, [1100, 335], 270);
 
-    const topMessageChannels = Object.entries(userData.messageChannels).sort((a, b) => b[1] - a[1]); // Tri décroissant
-    const topVoiceChannels = Object.entries(userData.voiceChannels).sort((a, b) => b[1] - a[1]); // Tri décroissant
+    const topMessageChannels = [];
 
-    await waitUntilReady(Client);
+    for (const entry of Object.entries(userData.messageChannels)) {
+        const channel = await guild.channels.fetch(entry[0]);
+        if (!channel) continue;
+
+        const channelData = await Stats.getChannel(channel);
+
+        if (channelData.boost !== 0) {
+            topMessageChannels.push(entry);
+        }
+    }
+
+    topMessageChannels.sort((a, b) => b[1] - a[1]);
+
+
+    const topVoiceChannels = [];
+
+    for (const entry of Object.entries(userData.voiceChannels)) {
+        const channel = await guild.channels.fetch(entry[0]);
+        if (!channel) continue;
+
+        const channelData = await Stats.getChannel(channel);
+
+        if (channelData.boost !== 0) {
+            topVoiceChannels.push(entry);
+        }
+    }
+
+    topVoiceChannels.sort((a, b) => b[1] - a[1]);
 
     if(topMessageChannels.length !== 0){
-        const topMessageChannel = await Client.channels.fetch(topMessageChannels[0][0]);
+        const topMessageChannel = await guild.channels.fetch(topMessageChannels[0][0]);
         canvasText(ctx, topMessageChannel.name, 30, [230, 477], 245);
         canvasText(ctx, `${topMessageChannels[0][1].toString()} messages`, 30, [487, 477], 250);
     }
@@ -94,7 +157,7 @@ async function createUserStats(user, userData) {
     }
 
     if(topVoiceChannels.length !== 0){
-        const topVoiceChannel = await Client.channels.fetch(topVoiceChannels[0][0]);
+        const topVoiceChannel = await guild.channels.fetch(topVoiceChannels[0][0]);
         const topVoiceHours = Math.floor(topVoiceChannels[0][1] / 3600000);
         canvasText(ctx, topVoiceChannel.name, 30, [230, 537], 245);
         canvasText(ctx, `${topVoiceHours.toString()} heures`, 30, [487, 537], 250);
@@ -106,8 +169,6 @@ async function createUserStats(user, userData) {
     // Salons
     canvasText(ctx, "Pas encore implémenté...", 30, [230, 597], 245);
     canvasText(ctx, "⁶🤷⁷", 30, [487, 597], 250);
-
-    const guild = await Client.guilds.fetch(process.env.GUILDS);
 
     const member = await guild.members.fetch(user.id);
 
@@ -139,8 +200,8 @@ async function createUserStats(user, userData) {
         const toDate = new Date(fromDate);
         toDate.setDate(toDate.getDate() + 1);
 
-        const messageCount = Stats.getUserMessageCountFromTo(userData, fromDate, toDate);
-        const voiceTime = Stats.getUserVoiceTimeFromTo(userData, fromDate, toDate);
+        const messageCount = await Stats.getUserMessageCountFromTo(userData, fromDate, toDate);
+        const voiceTime = await Stats.getUserVoiceTimeFromTo(userData, fromDate, toDate);
 
         messageData.push(messageCount);
         voiceData.push(Math.floor(voiceTime / 3600000));

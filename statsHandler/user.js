@@ -1,4 +1,21 @@
 const { pool, getCaller } = require("./db");
+const StatsChannel = require("./channel");
+const Discord = require("discord.js");
+const Client = new Discord.Client({
+    intents: [
+        Discord.GatewayIntentBits.Guilds,
+        Discord.GatewayIntentBits.GuildMembers
+    ]
+});
+
+Client.login(process.env.TOKEN);
+
+function waitUntilReady(client) {
+    return new Promise((resolve) => {
+        if (client.isReady()) return resolve();
+        client.once("ready", () => resolve());
+    });
+}
 
 function parseUserData(userData) {
     userData.messageChannels = JSON.parse(userData.messageChannels);
@@ -132,15 +149,54 @@ async function getUser(user) {
 async function userMessageRank(user) {
     const id = user.id;
     try {
-        const [[result]] = await pool.execute(`
-            SELECT COUNT(*) + 1 AS position
-            FROM users
-            WHERE messageCount > (
-                SELECT messageCount FROM users WHERE id = ?
-            )
-        `, [id]);
+        await createUserIfNotExists(user);
 
-        return result.position;
+        const [result] = await pool.execute(`SELECT * FROM users`);
+
+        const isChannelDisabled = {};
+
+        await waitUntilReady(Client);
+
+        const guild = await Client.guilds.fetch(process.env.GUILDS);
+
+        const entries = [];
+
+        for (const rawUserData of result) {
+            userData = parseUserData(rawUserData);
+
+            for (const channelId of Object.keys(userData.messageChannels)){
+                if(isChannelDisabled[channelId] === undefined){
+                    const channel = await guild.channels.fetch(channelId);
+
+                    if(!channel){
+                        isChannelDisabled[channelId] = true;
+                    } else {
+                        const channelData = await StatsChannel.getChannel(channel);
+
+                        isChannelDisabled[channelId] = channelData.boost === 0
+                    }
+                }
+
+                if(isChannelDisabled[channelId]){
+                    userData.messageCount -= userData.messageChannels[channelId];
+                }
+            }
+
+            entries.push([userData.id, userData.messageCount]);
+        }
+
+        entries.sort((a, b) => b[1] - a[1]) // Classement décroissant
+
+        const users = entries.map(entry => entry[0]); // Users dans l'ordre
+
+        const index = users.indexOf(id);
+
+        if(index == -1){
+            console.error(`${getCaller()} Impossible de récupérer le classement de l'utilisateur :\n${error}`);
+            return null
+        }
+
+        return index + 1;
     } catch (error) {
         console.error(`${getCaller()} Impossible de récupérer le classement de l'utilisateur :\n${error}`);
         return null;
@@ -156,15 +212,57 @@ async function userMessageRank(user) {
 async function userVoiceRank(user) {
     const id = user.id;
     try {
-        const [[result]] = await pool.execute(`
-            SELECT COUNT(*) + 1 AS position
-            FROM users
-            WHERE voiceTime > (
-                SELECT voiceTime FROM users WHERE id = ?
-            )
-        `, [id]);
+        await createUserIfNotExists(user);
 
-        return result.position;
+        const [result] = await pool.execute(`SELECT * FROM users`);
+
+        const isChannelDisabled = {};
+
+        const isVoiceBased = {};
+
+        await waitUntilReady(Client);
+
+        const guild = await Client.guilds.fetch(process.env.GUILDS);
+
+        const entries = [];
+
+        for (const rawUserData of result) {
+            userData = parseUserData(rawUserData);
+
+            for (const channelId of Object.keys(userData.messageChannels)){
+                if(isChannelDisabled[channelId] === undefined){
+                    const channel = await guild.channels.fetch(channelId);
+
+                    if(!channel){
+                        isChannelDisabled[channelId] = true;
+                    } else {
+                        const channelData = await StatsChannel.getChannel(channel);
+
+                        isChannelDisabled[channelId] = channelData.boost === 0
+                        isVoiceBased[channelId] = !channelData.textBased;
+                    }
+                }
+
+                if(isChannelDisabled[channelId] && isVoiceBased[channelId]){
+                    userData.voiceTime -= userData.voiceChannels[channelId];
+                }
+            }
+
+            entries.push([userData.id, userData.voiceTime]);
+        }
+
+        entries.sort((a, b) => b[1] - a[1]) // Classement décroissant
+
+        const users = entries.map(entry => entry[0]); // Users dans l'ordre
+
+        const index = users.indexOf(id);
+
+        if(index == -1){
+            console.error(`${getCaller()} Impossible de récupérer le classement de l'utilisateur :\n${error}`);
+            return null
+        }
+
+        return index + 1;
     } catch (error) {
         console.error(`${getCaller()} Impossible de récupérer le classement de l'utilisateur :\n${error}`);
         return null;
@@ -179,14 +277,24 @@ async function userVoiceRank(user) {
  * @param {Date} toDate - La date d'arrivée.
  * @returns {Number} Count - Le nombre de messages envoyés.
  */
-function getUserMessageCountFromTo(userData, fromDate, toDate = new Date()) {
+async function getUserMessageCountFromTo(userData, fromDate, toDate = new Date()) {
     fromDate = fromDate.getTime();
     toDate = toDate.getTime();
 
     const messages = userData.messages;
 
+    await waitUntilReady(Client);
+
+    const guild = await Client.guilds.fetch(process.env.GUILDS);
+
     let count = 0
     for (const message of [...messages].reverse()) { // Parcourt messages du plus récent au plus ancien.
+        const channel = await guild.channels.fetch(message.channel);
+        if(!channel) continue;
+
+        const channelData = await StatsChannel.getChannel(channel);
+        if(channelData.boost === 0) continue;
+
         if (message.date < fromDate) { // Si la date est avant fromDate
             break;
         }
@@ -209,13 +317,24 @@ function getUserMessageCountFromTo(userData, fromDate, toDate = new Date()) {
  * @param {Date} toDate - La date d'arrivée.
  * @returns {Number} Timestamp - Le temps de vocal.
  */
-function getUserVoiceTimeFromTo(userData, fromDate, toDate = new Date()) {
+async function getUserVoiceTimeFromTo(userData, fromDate, toDate = new Date()) {
     const from = fromDate.getTime();
     const to = toDate.getTime();
+
+    await waitUntilReady(Client);
+
+    const guild = await Client.guilds.fetch(process.env.GUILDS);
 
     let total = 0;
 
     for (const voice of [...userData.voices].reverse()) { // Parcours voices à l'envers.
+        const channel = await guild.channels.fetch(voice.channel);
+        if(!channel) continue;
+
+        const channelData = await StatsChannel.getChannel(channel);
+        if(!channelData) continue;
+        if(channelData.boost === 0) continue;
+        
         const start = voice.date; // Début du vocal.
         let end;
 

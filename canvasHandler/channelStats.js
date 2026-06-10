@@ -262,6 +262,13 @@ async function createChannelStats(channel, channelData) {
     // Salon
     canvasText(ctx, channel.name, 50, [250, 65], 450);
 
+    // Salon désactivé.
+    if(channelData.boost === 0){
+        ctx.fillStyle = "#676767";
+
+        canvasText(ctx, "Ce salon a été configuré comme désactivé, il ne sera pas pris en compte dans les statistiques et il sera ignoré dans les classements.", 20, [30, 675], 1200);
+    }
+
     const x = 80;
     const y = 65;
     const radius = 50;

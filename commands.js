@@ -40,6 +40,45 @@ const commands = [
     },
 
     {
+        name: "statsconfig",
+        description: "Paramétrer le suivi des statiqtiques du serveur.",
+        default_member_permissions: 0x0000000000000008,
+        options: [
+            {
+                name: "salon",
+                description: "Paramétrer les statistiques d'un salon.",
+                type: Discord.ApplicationCommandOptionType.Subcommand,
+                options: [
+                    {
+                        name: "salon",
+                        description: "Le salon à paramétrer.",
+                        type: Discord.ApplicationCommandOptionType.Channel,
+                        required: true
+                    },
+                    
+                    {
+                        name: "desactiver",
+                        description: "Désactive l'affichage des statistiques dans ce salon.",
+                        required: true,
+                        type: Discord.ApplicationCommandOptionType.String,
+                        choices: [
+                            {
+                                name: "oui",
+                                value: "true"
+                            },
+
+                            {
+                                name: "non",
+                                value: "false"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+
+    {
         name: "pseudos",
         description: "Vérifier le pseudo de tout les membres.",
         default_member_permissions: 0x0000000000000008,
@@ -91,7 +130,7 @@ const commands = [
             }
         ]
     },
-    
+
     {
         name: "pourcentage",
         description: "Compter le pourcentage de message envoyé par une personne dans un salon.",
@@ -127,7 +166,7 @@ const commands = [
                     }
                 ]
             },
-            
+
             {
                 name: "nombre",
                 description: "Si c'est un classement, combien de personnes maximum dedans ? (min 1, max 25)",
