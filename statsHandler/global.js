@@ -63,7 +63,107 @@ async function updateGlobal(fieldsToUpdate) {
     }
 }
 
+/**
+ * Renvoie l'identifiant et le temps de vocal de l'utilisateur ayant passé le plus de temps en vocal.
+ * 
+ * @returns {{
+ *   id: string,
+ *   voiceTime: Number
+ * } | null} user - L'identifiant de l'utilisateur et son temps de vocal ou `null sinon`.
+ */
+async function getTopVoiceUser() {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT id, voiceTime
+            FROM users
+            ORDER BY voiceTime DESC
+            LIMIT 1
+        `);
+
+        return rows[0] || null;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le top utilisateur vocal :\n${error}`);
+        return null;
+    }
+}
+
+/**
+ * Renvoie l'identifiant et le nombre de messages de l'utilisateur ayant envoyé le plus de messages.
+ * 
+ * @returns {{
+ *   id: string,
+ *   messageCount: Number
+ * } | null} user - L'identifiant de l'utilisateur et le nombre de messages ou `null sinon`.
+ */
+async function getTopMessageUser() {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT id, messageCount
+            FROM users
+            ORDER BY messageCount DESC
+            LIMIT 1
+        `);
+
+        return rows[0] || null;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le top utilisateur textuel :\n${error}`);
+        return null;
+    }
+}
+
+/**
+ * Renvoie l'identifiant et le temps de vocal du salon avec le plus de temps en vocal.
+ * 
+ * @returns {{
+ *   id: string,
+ *   totalVoice: Number
+ * } | null} user - L'identifiant du salon et son temps de vocal ou `null sinon`.
+ */
+async function getTopVoiceChannel() {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT id, totalVoice
+            FROM channels
+            ORDER BY totalVoice DESC
+            LIMIT 1
+        `);
+
+        return rows[0] || null;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le top salon vocal :\n${error}`);
+        return null;
+    }
+}
+
+/**
+ * Renvoie l'identifiant et le nombre de messages du salon avec le plus de messages.
+ * 
+ * @returns {{
+ *   id: string,
+ *   totalMessage: Number
+ * } | null} user - L'identifiant du salon et son nombre de messages ou `null sinon`.
+ */
+async function getTopMessageChannel() {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT id, totalMessage
+            FROM channels
+            ORDER BY totalMessage DESC
+            LIMIT 1
+        `);
+
+        return rows[0] || null;
+    } catch (error) {
+        console.error(`${getCaller()} Impossible de récupérer le top salon textuel :\n${error}`);
+        return null;
+    }
+}
+
 module.exports = {
     getGlobal,
-    updateGlobal
+    updateGlobal,
+    getTopMessageUser,
+    getTopVoiceUser,
+    getTopMessageChannel,
+    getTopVoiceChannel
 }

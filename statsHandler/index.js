@@ -1,5 +1,12 @@
 const { pool, getCaller } = require("./db");
-const { getGlobal, updateGlobal } = require("./global");
+const {
+    getGlobal,
+    updateGlobal,
+    getTopMessageChannel,
+    getTopVoiceChannel,
+    getTopMessageUser, 
+    getTopVoiceUser} = require("./global");
+
 const {
     createChannelIfNotExists,
     updateChannel,
@@ -265,5 +272,9 @@ module.exports = {
     getChannelMessageCountFromTo,
     getChannelVoiceTimeFromTo,
     getChannelMessageContributorsFromTo,
-    getChannelVoiceContributorsFromTo
+    getChannelVoiceContributorsFromTo,
+    getTopMessageChannel,
+    getTopVoiceChannel,
+    getTopMessageUser,
+    getTopVoiceUser
 }

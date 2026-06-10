@@ -87,9 +87,9 @@ async function createChannelStats(channel, channelData) {
 
     // Contributeurs
     if(textBased){
-        const todayContributors = Stats.getChannelMessageContributorsFromTo(channelData, today);
+        const todayContributors = Stats.getChannelMessageContributorsFromTo(channelData, today).length;
 
-        const lastWeekContributors = Stats.getChannelMessageContributorsFromTo(channelData, lastWeek);
+        const lastWeekContributors = Stats.getChannelMessageContributorsFromTo(channelData, lastWeek).length;
 
         const allContributors = Object.keys(channelData.usersMessage).length;
 
@@ -98,9 +98,9 @@ async function createChannelStats(channel, channelData) {
         canvasText(ctx, `${allContributors.toString()} contributeurs`, 30, [1100, 335], 270);
     }
     else {
-        const todayContributors = Stats.getChannelVoiceContributorsFromTo(channelData, today);
+        const todayContributors = Stats.getChannelVoiceContributorsFromTo(channelData, today).length;
 
-        const lastWeekContributors = Stats.getChannelVoiceContributorsFromTo(channelData, lastWeek);
+        const lastWeekContributors = Stats.getChannelVoiceContributorsFromTo(channelData, lastWeek).length;
 
         const allContributors = Object.keys(channelData.usersVoice).length;
 
@@ -118,7 +118,11 @@ async function createChannelStats(channel, channelData) {
 
         // Premier
         if(top.length >= 1){
-            const user = await guild.members.fetch(top[0][0]);
+            let user = await guild.members.fetch(top[0][0]);
+            if(!user){
+                user = await Client.users.fetch(top[0][0]);
+            }
+
             canvasText(ctx, user.displayName, 30, [180, 477], 280);
             canvasText(ctx, `${top[0][1].toString()} messages`, 30, [470, 477], 260);
         } else {
@@ -127,7 +131,11 @@ async function createChannelStats(channel, channelData) {
 
         // Deuxième
         if(top.length >= 2){
-            const user = await guild.members.fetch(top[1][0]);
+            let user = await guild.members.fetch(top[1][0]);
+            if(!user){
+                user = await Client.users.fetch(top[1][0]);
+            }
+            
             canvasText(ctx, user.displayName, 30, [180, 537], 280);
             canvasText(ctx, `${top[1][1].toString()} messages`, 30, [470, 537], 260);
         } else {
@@ -136,7 +144,11 @@ async function createChannelStats(channel, channelData) {
 
         // Troisième
         if(top.length >= 3){
-            const user = await guild.members.fetch(top[2][0]);
+            let user = await guild.members.fetch(top[2][0]);
+            if(!user){
+                user = await Client.users.fetch(top[2][0]);
+            }
+            
             canvasText(ctx, user.displayName, 30, [180, 597], 280);
             canvasText(ctx, `${top[2][1].toString()} messages`, 30, [470, 597], 260);
         } else {
@@ -148,7 +160,11 @@ async function createChannelStats(channel, channelData) {
 
         // Premier
         if(top.length >= 1){
-            const user = await guild.members.fetch(top[0][0]);
+            let user = await guild.members.fetch(top[0][0]);
+            if(!user){
+                user = await Client.users.fetch(top[0][0]);
+            }
+            
             canvasText(ctx, user.displayName, 30, [180, 477], 280);
 
             const voiceTime = Math.floor(top[0][1] / 3600000);
@@ -160,7 +176,11 @@ async function createChannelStats(channel, channelData) {
 
         // Deuxième
         if(top.length >= 2){
-            const user = await guild.members.fetch(top[1][0]);
+            let user = await guild.members.fetch(top[1][0]);
+            if(!user){
+                user = await Client.users.fetch(top[1][0]);
+            }
+            
             canvasText(ctx, user.displayName, 30, [180, 537], 280);
 
             const voiceTime = Math.floor(top[1][1] / 3600000);
@@ -172,7 +192,11 @@ async function createChannelStats(channel, channelData) {
 
         // Troisième
         if(top.length >= 3){
-            const user = await guild.members.fetch(top[2][0]);
+            let user = await guild.members.fetch(top[2][0]);
+            if(!user){
+                user = await Client.users.fetch(top[2][0]);
+            }
+            
             canvasText(ctx, user.displayName, 30, [180, 597], 280);
 
             const voiceTime = Math.floor(top[2][1] / 3600000);

@@ -29,6 +29,12 @@ const commands = [
                         type: Discord.ApplicationCommandOptionType.Channel
                     }
                 ]
+            },
+
+            {
+                name: "serveur",
+                description: "Regarder les statistiques du serveur.",
+                type: Discord.ApplicationCommandOptionType.Subcommand
             }
         ]
     },

@@ -253,12 +253,12 @@ function getChannelVoiceTimeFromTo(channelData, fromDate, toDate = new Date()) {
 }
 
 /**
- * Renvoie le nombre d'utilisateurs ayant envoyé des messages dans le salon de `fromDate` à `toDate`.
+ * Renvoie un array contenant les id des utilisateurs ayant envoyé des messages dans le salon de `fromDate` à `toDate`.
  * 
  * @param {Object} channelData - Les données du salon.
  * @param {Date} fromDate - La date de départ.
  * @param {Date} toDate - La date d'arrivée.
- * @returns {Number} Count - Le nombre de contributeurs.
+ * @returns {Array} Contributors - Les contributeurs.
  */
 function getChannelMessageContributorsFromTo(channelData, fromDate, toDate = new Date()) {
     fromDate = fromDate.getTime();
@@ -266,7 +266,6 @@ function getChannelMessageContributorsFromTo(channelData, fromDate, toDate = new
 
     const messages = channelData.messages;
 
-    let count = 0;
     const contributors = {};
 
     for (const message of [...messages].reverse()) { // Parcourt messages du plus récent au plus ancien.
@@ -280,26 +279,24 @@ function getChannelMessageContributorsFromTo(channelData, fromDate, toDate = new
 
         if(!contributors[message.user]){
             contributors[message.user] = true;
-            count += 1;
         }
     };
 
-    return count;
+    return Object.keys(contributors);
 }
 
 /**
- * Renvoie le nombre d'utilisateurs ayant participé à un vocal de `fromDate` à `toDate` (ne compte pas les appels en cours).
+ * Renvoie un array contenant les id des utilisateurs ayant participé à un vocal de `fromDate` à `toDate` (ne compte pas les appels en cours).
  * 
  * @param {Object} channelData - Les données du salon.
  * @param {Date} fromDate - La date de départ.
  * @param {Date} toDate - La date d'arrivée.
- * @returns {Number} Count - Le nombre de contributeurs.
+ * @returns {Array} Contributors - Les contributeurs.
  */
 function getChannelVoiceContributorsFromTo(channelData, fromDate, toDate = new Date()) {
     const from = fromDate.getTime();
     const to = toDate.getTime();
 
-    let count = 0;
     const contributors = {};
 
     for (const voice of [...channelData.voices].reverse()) { // Parcours voices à l'envers.
@@ -314,11 +311,10 @@ function getChannelVoiceContributorsFromTo(channelData, fromDate, toDate = new D
         // Intersection
         if(!contributors[voice.user]){
             contributors[voice.user] = true;
-            count += 1;
         }
     }
 
-    return count;
+    return Object.keys(contributors);
 }
 
 module.exports = {
