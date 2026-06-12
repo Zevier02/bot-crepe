@@ -67,9 +67,10 @@ module.exports = {
             i += 1
         }
 
-        await waitUntilReady(Client)
         Client.user.setPresence({ activities: [{ name: 'les crêpes cuires', type: Discord.ActivityType.Listening }], status: 'online' });
+
         const channel = await Client.channels.fetch('1383815098606424235');
+        
         setTimeout(() => {
             clearMessages(channel)
             setInterval(() => {
