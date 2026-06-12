@@ -43,6 +43,14 @@ module.exports = {
                     .replace(/\s+/g, " ")
                     .trim();
                 if (pseudo == "") pseudo = "Crêpe sans nom";
+
+                if (pseudo.length > 32) {
+                    const embed = new Discord.EmbedBuilder()
+                        .setColor("Red")
+                        .setDescription("Ce pseudo est trop long ! La taille maximale d'un pseudo est de 32 caractères.")
+                    return message.member.send({ embeds: [embed] });
+                }
+
                 if (pseudo !== "Crêpe sans nom") {
                     const targetPseudo = normalizePseudo(pseudo);
                     await message.guild.members.fetch();
