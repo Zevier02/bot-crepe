@@ -37,8 +37,8 @@ async function initializeDatabase() {
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS users (
             id VARCHAR(32) PRIMARY KEY,
-            messageCount INTEGER UNSIGNED NOT NULL DEFAULT 0,
-            voiceTime INTEGER UNSIGNED NOT NULL DEFAULT 0,
+            messageCount BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            voiceTime BIGINT UNSIGNED NOT NULL DEFAULT 0,
             messageChannels JSON NOT NULL DEFAULT '{}',
             voiceChannels JSON NOT NULL DEFAULT '{}',
             messages JSON NOT NULL DEFAULT '[]',
@@ -51,9 +51,9 @@ async function initializeDatabase() {
             boost FLOAT DEFAULT 1,
             textBased BOOLEAN NOT NULL DEFAULT TRUE,
             usersMessage JSON NOT NULL DEFAULT '{}',
-            totalMessage INTEGER UNSIGNED NOT NULL DEFAULT 0,
+            totalMessage BIGINT UNSIGNED NOT NULL DEFAULT 0,
             usersVoice JSON DEFAULT NULL,
-            totalVoice INTEGER DEFAULT NULL,
+            totalVoice BIGINT UNSIGNED DEFAULT NULL,
             messages JSON NOT NULL DEFAULT '[]',
             voices JSON)
         `);
@@ -61,8 +61,8 @@ async function initializeDatabase() {
         await pool.execute(`
             CREATE TABLE IF NOT EXISTS global (
             id VARCHAR(32) PRIMARY KEY,
-            totalMessage INTEGER UNSIGNED NOT NULL DEFAULT 0,
-            totalVoice INTEGER UNSIGNED NOT NULL DEFAULT 0,
+            totalMessage BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            totalVoice BIGINT UNSIGNED NOT NULL DEFAULT 0,
             connectedUsers JSON NOT NULL DEFAULT '[]')
         `);
 
